@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import SignUpButton from "./signup";
 import { signUpWithEmail } from "@/utils/user";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const RegisterPage = () => {
     const [error, setError] = useState<string>("");
@@ -145,6 +146,10 @@ const RegisterPage = () => {
             <div>or</div>
             <br />
             <SignUpButton />
+            <br />
+            <div>
+                already have an account? <Link href={"/login"}>Log in</Link>
+            </div>
         </div>
     );
 };
