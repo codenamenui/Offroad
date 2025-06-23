@@ -6,6 +6,7 @@ import Link from "next/link";
 import { signInWithEmail } from "@/utils/user";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Input } from "@/components/ui/input";
 
 const LoginPage = () => {
     const [error, setError] = useState<string>("");
@@ -46,18 +47,13 @@ const LoginPage = () => {
 
     return (
         <div>
-            <Image src={""} alt={"no image"}></Image>
+            <Image src={null} alt={"no image"}></Image>
             <div>log in to your account!</div>
             <div>welcome to offroad!</div>
 
-            {error && (
-                <div style={{ color: "red", marginBottom: "1rem" }}>
-                    Error: {error}
-                </div>
-            )}
-
             <form onSubmit={handleSubmit}>
-                <input
+                <label htmlFor="email">Email</label>
+                <Input
                     type="email"
                     id="email"
                     name="email"
@@ -65,19 +61,27 @@ const LoginPage = () => {
                     required
                     disabled={loading}
                 />
-                <input
+                <label htmlFor="password">Password</label>
+                <Input
                     type="password"
                     name="password"
                     placeholder="********"
                     required
                     disabled={loading}
                 />
-                <input
+                <Input
                     type="submit"
                     value={loading ? "Signing In..." : "Sign In"}
                     disabled={loading}
                 />
             </form>
+
+            {error && (
+                <div style={{ color: "red", marginBottom: "1rem" }}>
+                    Error: {error}
+                </div>
+            )}
+
             <SignInButton />
             <div>
                 Don&apos;t have an account?
