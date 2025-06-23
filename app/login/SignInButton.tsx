@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { signInUser } from "@/utils/user";
+import { signInUserOAuth } from "@/utils/user";
 import React, { useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 
@@ -11,7 +11,7 @@ const SignInButton = () => {
     const handleSignIn = async () => {
         setIsSigningIn(true);
         try {
-            await signInUser();
+            await signInUserOAuth();
         } finally {
             setIsSigningIn(false);
         }
