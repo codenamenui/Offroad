@@ -2,6 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
+    console.log("DWADWADWAD");
     const requestUrl = new URL(request.url);
     const code = requestUrl.searchParams.get("code");
     const error = requestUrl.searchParams.get("error");
@@ -40,6 +41,31 @@ export async function GET(request: Request) {
                 );
             }
 
+            // Log session details for debugging
+            console.log("Session created successfully:", {
+                userId: data.user.id,
+                email: data.user.email,
+                sessionExpires: data.session.expires_at,
+            });
+
+            // Create response with redirect
+            const response = NextResponse.redirect(`${origin}/dashboard`);
+
+            // Ensure cookies are set properly (this might be redundant but ensures session persistence)
+            const sessionCookie = await supabase.auth.getSession();
+            if (sessionCookie.data.session?.access_token) {
+                // The session should already be set by exchangeCodeForSession,
+                // but we're ensuring it's persisted
+                response.cookies.set({
+                    name: "sb-access-token",
+                    value: sessionCookie.data.session.access_token,
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "lax",
+                    maxAge: 60 * 60 * 24 * 7, // 7 days
+                });
+            }
+
             // Check if user has phone number in metadata
             const hasPhone =
                 data.user.user_metadata?.phone ||
@@ -68,7 +94,7 @@ export async function GET(request: Request) {
             }
 
             // Existing user with complete profile - redirect to dashboard
-            return NextResponse.redirect(`${origin}/dashboard`);
+            return response;
         } catch (err) {
             console.error("Unexpected error in auth callback:", err);
             return NextResponse.redirect(
