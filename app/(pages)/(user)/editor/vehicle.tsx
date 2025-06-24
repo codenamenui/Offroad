@@ -3,6 +3,7 @@ import MechanicSelectionModal from "./mechanic-selection-modal";
 import DateSelectionModal from "./date-selection-modal";
 import BookingConfirmationModal from "./booking-confirmation-modal";
 import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 
 const VehiclePanel = ({
     vehicles,
@@ -11,6 +12,9 @@ const VehiclePanel = ({
     customizations,
     setCustomizations,
     mechanics,
+    isEditMode = false,
+    editBookingGroupId = null,
+    setIsEditMode,
 }) => {
     const [showMechanicModal, setShowMechanicModal] = useState(false);
     const [showDateModal, setShowDateModal] = useState(false);
@@ -19,6 +23,7 @@ const VehiclePanel = ({
         mechanic_id: null,
         date: null,
     });
+    const router = useRouter();
 
     const updatePartQuantity = (part, newQuantity) => {
         if (newQuantity < 0 || newQuantity > part.stock) return;
@@ -80,6 +85,12 @@ const VehiclePanel = ({
         }
     };
 
+    const handleUpdateBooking = () => {
+        if (filteredCustomizations.length > 0) {
+            setShowDateModal(true);
+        }
+    };
+
     const handleDateNext = (selectedDate) => {
         setBookingData((prev) => ({ ...prev, date: selectedDate }));
         setShowDateModal(false);
@@ -97,7 +108,11 @@ const VehiclePanel = ({
     };
 
     const handleConfirmBooking = async () => {
-        await submitBookingToSupabase();
+        if (isEditMode) {
+            await updateBookingInSupabase();
+        } else {
+            await submitBookingToSupabase();
+        }
         setShowConfirmationModal(false);
         setBookingData({ mechanic_id: null, date: null });
     };
@@ -115,6 +130,12 @@ const VehiclePanel = ({
     const handleCloseMechanicModal = () => {
         setShowMechanicModal(false);
         setBookingData((prev) => ({ ...prev, mechanic_id: null }));
+    };
+
+    const handleCancelEdit = () => {
+        setIsEditMode(false);
+        setCustomizations({ parts: [] });
+        router.push("/editor");
     };
 
     const submitBookingToSupabase = async () => {
@@ -150,6 +171,40 @@ const VehiclePanel = ({
         });
     };
 
+    const updateBookingInSupabase = async () => {
+        const supabase = await createClient();
+        const {
+            data: { user },
+        } = await supabase.auth.getUser();
+
+        await supabase
+            .from("bookings")
+            .delete()
+            .eq("booking_group_id", editBookingGroupId);
+
+        const bookingRecords = filteredCustomizations.map((customization) => ({
+            part_id: customization.part.id,
+            mechanic_id: bookingData.mechanic_id,
+            user_id: user.id,
+            quantity: customization.quantity,
+            date: bookingData.date,
+            status: "pending",
+            booking_group_id: editBookingGroupId,
+        }));
+
+        const { error } = await supabase
+            .from("bookings")
+            .insert(bookingRecords);
+
+        if (error) console.error("Error updating bookings:", error);
+
+        setIsEditMode(false);
+        setCustomizations({
+            parts: [],
+        });
+        router.push("/editor");
+    };
+
     return (
         <div>
             <div>
@@ -160,6 +215,7 @@ const VehiclePanel = ({
                         className={
                             selectedVehicleId === vehicle.id ? "active" : ""
                         }
+                        disabled={isEditMode}
                     >
                         {vehicle.name}
                     </button>
@@ -167,7 +223,7 @@ const VehiclePanel = ({
             </div>
 
             <div>
-                <h3>Customizations</h3>
+                <h3>{isEditMode ? "Edit Booking" : "Customizations"}</h3>
                 <div>
                     <strong>Total: ${getTotalPrice()}</strong>
                 </div>
@@ -206,7 +262,17 @@ const VehiclePanel = ({
                         </span>
                     </div>
                 ))}
-                <button onClick={handleBookNow}>Book Now</button>
+
+                {isEditMode ? (
+                    <div>
+                        <button onClick={handleUpdateBooking}>
+                            Update Booking
+                        </button>
+                        <button onClick={handleCancelEdit}>Cancel Edit</button>
+                    </div>
+                ) : (
+                    <button onClick={handleBookNow}>Book Now</button>
+                )}
             </div>
 
             <DateSelectionModal

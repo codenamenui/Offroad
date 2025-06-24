@@ -49,7 +49,7 @@ export async function GET(request: Request) {
             });
 
             // Create response with redirect
-            const response = NextResponse.redirect(`${origin}/dashboard`);
+            const response = NextResponse.redirect(`${origin}/editor`);
 
             // Ensure cookies are set properly (this might be redundant but ensures session persistence)
             const sessionCookie = await supabase.auth.getSession();
@@ -93,7 +93,7 @@ export async function GET(request: Request) {
                 return NextResponse.redirect(`${origin}/onboarding`);
             }
 
-            // Existing user with complete profile - redirect to dashboard
+            // Existing user with complete profile - redirect to editor
             return response;
         } catch (err) {
             console.error("Unexpected error in auth callback:", err);

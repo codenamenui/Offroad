@@ -58,7 +58,7 @@ const RegisterPage = () => {
                 setMessage(result.message);
             } else {
                 // Log successful signup
-                router.push("/dashboard");
+                router.push("/editor");
             }
         } catch (err) {
             console.error("Signup error:", err);

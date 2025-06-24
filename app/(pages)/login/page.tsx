@@ -35,7 +35,7 @@ const LoginPage = () => {
                 setError(result.error);
             } else {
                 // Success - redirect to dashboard
-                router.push("/dashboard");
+                router.push("/editor");
             }
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {

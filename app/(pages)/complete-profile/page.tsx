@@ -44,7 +44,7 @@ const PhoneCollectionForm = () => {
             if (updateError) {
                 setError("Failed to update phone number");
             } else {
-                router.push("/dashboard");
+                router.push("/editor");
             }
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
