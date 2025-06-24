@@ -1,17 +1,14 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import PartItem from "./part-item";
-import FilterPopup from "./filter-popup";
+import { useSearch } from "./header";
 
 const SearchPanel = ({
     selectedVehicleId,
     parts,
-    types,
     customizations,
     setCustomizations,
 }) => {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [selectedTypes, setSelectedTypes] = useState([]);
-    const [showFilterPopup, setShowFilterPopup] = useState(false);
+    const { searchTerm, selectedTypes } = useSearch();
 
     const filteredParts = useMemo(() => {
         return parts.filter((part) => {
@@ -25,14 +22,6 @@ const SearchPanel = ({
             return matchesVehicle && matchesSearch && matchesType;
         });
     }, [parts, selectedVehicleId, searchTerm, selectedTypes]);
-
-    const handleTypeToggle = (typeId) => {
-        setSelectedTypes((prev) =>
-            prev.includes(typeId)
-                ? prev.filter((id) => id !== typeId)
-                : [...prev, typeId]
-        );
-    };
 
     const handleAddPart = (part) => {
         const currentQuantity =
@@ -64,22 +53,6 @@ const SearchPanel = ({
 
     return (
         <div className="border-l-2 p-4">
-            <div className="mb-4">
-                <input
-                    type="text"
-                    placeholder="Search parts..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="border p-2 w-full mb-2"
-                />
-                <button
-                    onClick={() => setShowFilterPopup(true)}
-                    className="border p-2"
-                >
-                    Filter by Type
-                </button>
-            </div>
-
             <div className="flex">
                 {filteredParts.map((part) => (
                     <PartItem
@@ -89,15 +62,6 @@ const SearchPanel = ({
                     />
                 ))}
             </div>
-
-            {showFilterPopup && (
-                <FilterPopup
-                    types={types}
-                    selectedTypes={selectedTypes}
-                    onTypeToggle={handleTypeToggle}
-                    onClose={() => setShowFilterPopup(false)}
-                />
-            )}
         </div>
     );
 };

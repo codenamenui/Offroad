@@ -7,9 +7,7 @@ type Part = Tables<"parts">;
 type Type = Tables<"types">;
 type Mechanic = Tables<"mechanics">;
 
-async function getVehicles(): Promise<Vehicle[]> {
-    const supabase = await createClient();
-
+async function getVehicles(supabase): Promise<Vehicle[]> {
     const { data: vehicles, error } = await supabase
         .from("vehicles")
         .select("*");
@@ -22,9 +20,7 @@ async function getVehicles(): Promise<Vehicle[]> {
     return vehicles || [];
 }
 
-async function getParts(): Promise<Part[]> {
-    const supabase = await createClient();
-
+async function getParts(supabase): Promise<Part[]> {
     const { data: parts, error } = await supabase.from("parts").select("*");
 
     if (error) {
@@ -35,9 +31,7 @@ async function getParts(): Promise<Part[]> {
     return parts || [];
 }
 
-async function getTypes(): Promise<Type[]> {
-    const supabase = await createClient();
-
+async function getTypes(supabase): Promise<Type[]> {
     const { data: types, error } = await supabase.from("types").select("*");
 
     if (error) {
@@ -48,9 +42,7 @@ async function getTypes(): Promise<Type[]> {
     return types || [];
 }
 
-async function getMechanics(): Promise<Mechanic[]> {
-    const supabase = await createClient();
-
+async function getMechanics(supabase): Promise<Mechanic[]> {
     const { data: mechanics, error } = await supabase
         .from("mechanics")
         .select("*");
@@ -65,16 +57,26 @@ async function getMechanics(): Promise<Mechanic[]> {
 
 export default async function DashboardPage() {
     try {
-        const vehicles = await getVehicles();
-        const parts = await getParts();
-        const types = await getTypes();
-        const mechanics = await getMechanics();
+        const supabase = await createClient();
+        const vehicles = await getVehicles(supabase);
+        const parts = await getParts(supabase);
+        const types = await getTypes(supabase);
+        const mechanics = await getMechanics(supabase);
+        const {
+            data: { user },
+        } = await supabase.auth.getUser();
+        const { data: profile } = await supabase
+            .from("users")
+            .select("name")
+            .eq("user_id", user.id)
+            .single();
         return (
             <DashboardPanel
                 vehicles={vehicles}
                 parts={parts}
                 types={types}
                 mechanics={mechanics}
+                user={profile}
             />
         );
     } catch (error) {
