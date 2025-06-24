@@ -4,12 +4,20 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
-const PhoneCollectionForm = () => {
+const CompleteProfileForm = () => {
     const [phone, setPhone] = useState("");
+    const [role, setRole] = useState("user");
+    const [profileImage, setProfileImage] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const router = useRouter();
     const supabase = createClient();
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setProfileImage(e.target.files[0]);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -23,7 +31,6 @@ const PhoneCollectionForm = () => {
         }
 
         try {
-            // Get the current user
             const {
                 data: { user },
                 error: userError,
@@ -35,44 +42,92 @@ const PhoneCollectionForm = () => {
                 return;
             }
 
-            // Update the contact_number in the users table
+            let imageUrl = null;
+            if (role === "mechanic" && profileImage) {
+                const fileExt = profileImage.name.split(".").pop();
+                const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from("mechanic-profiles")
+                    .upload(fileName, profileImage);
+
+                if (uploadError) {
+                    setError("Failed to upload profile image");
+                    setLoading(false);
+                    return;
+                }
+
+                const { data: publicUrlData } = supabase.storage
+                    .from("mechanic-profiles")
+                    .getPublicUrl(fileName);
+
+                imageUrl = publicUrlData.publicUrl;
+            }
+
+            const updates = {
+                contact_number: phone.trim(),
+            };
+
             const { error: updateError } = await supabase
                 .from("users")
-                .update({ contact_number: phone.trim() })
+                .update(updates)
                 .eq("user_id", user.id);
 
             if (updateError) {
                 setError("Failed to update phone number");
+                setLoading(false);
+                return;
+            }
+
+            // Insert to user_profiles
+            const { error: profileError } = await supabase
+                .from("user_profiles")
+                .update({
+                    role: role,
+                })
+                .eq("id", user.id);
+
+            if (profileError) {
+                setError("Failed to create user profile");
+                setLoading(false);
+                return;
+            }
+
+            // If mechanic, insert to mechanics table
+            if (role === "mechanic") {
+                const { error: mechanicError } = await supabase
+                    .from("mechanics")
+                    .update({
+                        url: imageUrl,
+                    })
+                    .eq("profile_id", user.id);
+
+                if (mechanicError) {
+                    setError("Failed to create mechanic profile");
+                    setLoading(false);
+                    return;
+                }
+
+                router.push("/mechanic/dashboard");
             } else {
                 router.push("/editor");
             }
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
-            setError("Failed to update phone number");
+            setError("Unexpected error occurred");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
             <div className="max-w-md w-full space-y-8">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Complete Your Profile
-                    </h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
-                        Add your phone number to get started
-                    </p>
-                </div>
-
-                <div className="mt-8 space-y-6">
-                    {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                            {error}
-                        </div>
-                    )}
-
+                <h2 className="text-center text-3xl font-bold text-gray-900">
+                    Complete Your Profile
+                </h2>
+                {error && <div className="text-red-500">{error}</div>}
+                <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                         <label
                             htmlFor="phone"
@@ -82,29 +137,50 @@ const PhoneCollectionForm = () => {
                         </label>
                         <input
                             id="phone"
-                            name="phone"
                             type="tel"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
-                            className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                            placeholder="Enter your phone number"
-                            disabled={loading}
+                            className="mt-1 w-full border px-3 py-2 rounded"
+                            required
                         />
                     </div>
-
-                    <div className="flex space-x-4">
-                        <button
-                            onClick={handleSubmit}
-                            disabled={loading}
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                            Role
+                        </label>
+                        <select
+                            value={role}
+                            onChange={(e) => setRole(e.target.value)}
+                            className="mt-1 w-full border px-3 py-2 rounded"
                         >
-                            {loading ? "Saving..." : "Continue"}
-                        </button>
+                            <option value="user">User</option>
+                            <option value="mechanic">Mechanic</option>
+                        </select>
                     </div>
-                </div>
+                    {role === "mechanic" && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">
+                                Profile Picture
+                            </label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                                className="mt-1 w-full"
+                            />
+                        </div>
+                    )}
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full py-2 px-4 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                    >
+                        {loading ? "Saving..." : "Continue"}
+                    </button>
+                </form>
             </div>
         </div>
     );
 };
 
-export default PhoneCollectionForm;
+export default CompleteProfileForm;
