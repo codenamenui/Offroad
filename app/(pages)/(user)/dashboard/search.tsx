@@ -80,7 +80,7 @@ const SearchPanel = ({
                 </button>
             </div>
 
-            <div className="grid gap-4">
+            <div className="flex">
                 {filteredParts.map((part) => (
                     <PartItem
                         key={part.id}

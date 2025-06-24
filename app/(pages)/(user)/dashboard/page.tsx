@@ -4,7 +4,8 @@ import { Tables } from "@/data/database.types";
 
 type Vehicle = Tables<"vehicles">;
 type Part = Tables<"parts">;
-type Types = Tables<"types">;
+type Type = Tables<"types">;
+type Mechanic = Tables<"mechanics">;
 
 async function getVehicles(): Promise<Vehicle[]> {
     const supabase = await createClient();
@@ -34,7 +35,7 @@ async function getParts(): Promise<Part[]> {
     return parts || [];
 }
 
-async function getTypes(): Promise<Types[]> {
+async function getTypes(): Promise<Type[]> {
     const supabase = await createClient();
 
     const { data: types, error } = await supabase.from("types").select("*");
@@ -47,13 +48,34 @@ async function getTypes(): Promise<Types[]> {
     return types || [];
 }
 
+async function getMechanics(): Promise<Mechanic[]> {
+    const supabase = await createClient();
+
+    const { data: mechanics, error } = await supabase
+        .from("mechanics")
+        .select("*");
+
+    if (error) {
+        console.error("Error fetching mechanics:", error);
+        throw new Error(`Failed to fetch mechanics: ${error.message}`);
+    }
+
+    return mechanics || [];
+}
+
 export default async function DashboardPage() {
     try {
         const vehicles = await getVehicles();
         const parts = await getParts();
         const types = await getTypes();
+        const mechanics = await getMechanics();
         return (
-            <DashboardPanel vehicles={vehicles} parts={parts} types={types} />
+            <DashboardPanel
+                vehicles={vehicles}
+                parts={parts}
+                types={types}
+                mechanics={mechanics}
+            />
         );
     } catch (error) {
         console.error("Dashboard error:", error);

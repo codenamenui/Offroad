@@ -1,4 +1,8 @@
-import Image from "next/image";
+import { useState } from "react";
+import MechanicSelectionModal from "./mechanic-selection-modal";
+import DateSelectionModal from "./date-selection-modal";
+import BookingConfirmationModal from "./booking-confirmation-modal";
+import { createClient } from "@/utils/supabase/client";
 
 const VehiclePanel = ({
     vehicles,
@@ -6,18 +10,15 @@ const VehiclePanel = ({
     setSelectedVehicleId,
     customizations,
     setCustomizations,
-    parts,
+    mechanics,
 }) => {
-    const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
-    const vehicleParts =
-        parts?.filter((part) => part.vehicle_id === selectedVehicleId) || [];
-
-    const getPartQuantity = (partId) => {
-        const customization = customizations?.parts?.find(
-            (c) => c.part.id === partId
-        );
-        return customization?.quantity || 0;
-    };
+    const [showMechanicModal, setShowMechanicModal] = useState(false);
+    const [showDateModal, setShowDateModal] = useState(false);
+    const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+    const [bookingData, setBookingData] = useState({
+        mechanic_id: null,
+        date: null,
+    });
 
     const updatePartQuantity = (part, newQuantity) => {
         if (newQuantity < 0 || newQuantity > part.stock) return;
@@ -53,25 +54,94 @@ const VehiclePanel = ({
 
     const getTotalPrice = () => {
         return (
-            customizations?.parts?.reduce((total, customization) => {
-                return (
-                    total + customization.part.price * customization.quantity
-                );
-            }, 0) || 0
+            customizations?.parts
+                ?.filter(
+                    (customization) =>
+                        customization.part.vehicle_id === selectedVehicleId
+                )
+                .reduce((total, customization) => {
+                    return (
+                        total +
+                        customization.part.price * customization.quantity
+                    );
+                }, 0) || 0
         );
+    };
+
+    const filteredCustomizations =
+        customizations?.parts?.filter(
+            (customization) =>
+                customization.part.vehicle_id === selectedVehicleId
+        ) || [];
+
+    const handleBookNow = () => {
+        if (filteredCustomizations.length > 0) {
+            setShowMechanicModal(true);
+        }
+    };
+
+    const handleMechanicNext = () => {
+        setShowMechanicModal(false);
+        setShowDateModal(true);
+    };
+
+    const handleDateNext = (selectedDate) => {
+        setBookingData((prev) => ({ ...prev, date: selectedDate }));
+        setShowDateModal(false);
+        setShowConfirmationModal(true);
+    };
+
+    const handleConfirmBooking = async () => {
+        await submitBookingToSupabase();
+        setShowConfirmationModal(false);
+        setBookingData({ mechanic_id: null, date: null });
+    };
+
+    const handleCancelBooking = () => {
+        setShowConfirmationModal(false);
+        setBookingData({ mechanic_id: null, date: null });
+    };
+
+    const handleCloseDateModal = () => {
+        setShowDateModal(false);
+        setBookingData((prev) => ({ ...prev, date: null }));
+    };
+
+    const submitBookingToSupabase = async () => {
+        const supabase = await createClient();
+        const {
+            data: { user },
+        } = await supabase.auth.getUser();
+
+        const { data: group } = await supabase
+            .from("booking_groups")
+            .insert({ user_id: user.id })
+            .select("id")
+            .single();
+
+        const bookingRecords = filteredCustomizations.map((customization) => ({
+            part_id: customization.part.id,
+            mechanic_id: bookingData.mechanic_id,
+            user_id: user.id,
+            quantity: customization.quantity,
+            date: bookingData.date,
+            status: "pending",
+            booking_group_id: group ? group.id : -1,
+        }));
+
+        const { error } = await supabase
+            .from("bookings")
+            .insert(bookingRecords);
+
+        if (error) console.error("Error inserting bookings:", error);
+
+        setCustomizations({
+            parts: [],
+        });
     };
 
     return (
         <div>
-            <div>
-                <Image
-                    src={selectedVehicle?.url}
-                    alt={selectedVehicle?.name}
-                    width="300"
-                    height="200"
-                />
-            </div>
-
             <div>
                 {vehicles.map((vehicle) => (
                     <button
@@ -91,7 +161,7 @@ const VehiclePanel = ({
                 <div>
                     <strong>Total: ${getTotalPrice()}</strong>
                 </div>
-                {customizations?.parts?.map((customization) => (
+                {filteredCustomizations.map((customization) => (
                     <div key={customization.part.id}>
                         <span>{customization.part.name}</span>
                         <span>Unit Price: ${customization.part.price}</span>
@@ -126,8 +196,30 @@ const VehiclePanel = ({
                         </span>
                     </div>
                 ))}
-                <button>Book Now</button>
+                <button onClick={handleBookNow}>Book Now</button>
             </div>
+
+            <MechanicSelectionModal
+                isOpen={showMechanicModal}
+                onClose={() => setShowMechanicModal(false)}
+                mechanics={mechanics}
+                onNext={handleMechanicNext}
+                bookingData={bookingData}
+                setBookingData={setBookingData}
+            />
+
+            <DateSelectionModal
+                isOpen={showDateModal}
+                onClose={handleCloseDateModal}
+                onNext={handleDateNext}
+            />
+
+            <BookingConfirmationModal
+                isOpen={showConfirmationModal}
+                onConfirm={handleConfirmBooking}
+                onCancel={handleCancelBooking}
+                bookingData={bookingData}
+            />
         </div>
     );
 };
