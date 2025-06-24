@@ -55,7 +55,7 @@ const RegisterPage = () => {
             } else if (result.message) {
                 setMessage(result.message);
             } else {
-                router.push("/editor");
+                router.push("/user/editor");
             }
         } catch (err) {
             console.error("Signup error:", err);

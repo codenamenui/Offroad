@@ -33,7 +33,7 @@ const LoginPage = () => {
             if (result.error) {
                 setError(result.error);
             } else {
-                router.push("/editor");
+                router.push("/user/editor");
             }
         } catch (err) {
             setError("An unexpected error occurred");
@@ -79,7 +79,8 @@ const LoginPage = () => {
             <SignInButton />
 
             <div>
-                Don&apos;t have an account? <Link href="/register">Register</Link>
+                Don&apos;t have an account?{" "}
+                <Link href="/register">Register</Link>
             </div>
         </div>
     );
