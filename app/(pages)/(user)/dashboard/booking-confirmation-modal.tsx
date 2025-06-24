@@ -33,11 +33,7 @@ const BookingConfirmationModal = ({
                     been submitted. Please wait for the confirmation of the
                     mechanic. Thank you!
                 </p>
-                {bookingData.date && (
-                    <p>
-                        Selected Date: {bookingData.date.toLocaleDateString()}
-                    </p>
-                )}
+                {bookingData.date && <p>Selected Date: {bookingData.date}</p>}
                 <div>
                     <button onClick={onConfirm}>Confirm</button>
                     <button onClick={onCancel}>Cancel</button>

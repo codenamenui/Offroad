@@ -1,7 +1,6 @@
 import Image from "next/image";
 
 const PartItem = ({ part, onAddPart }) => {
-    console.log(part);
     return (
         <div
             className="border p-4 cursor-pointer hover:bg-gray-100"

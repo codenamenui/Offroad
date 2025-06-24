@@ -76,19 +76,24 @@ const VehiclePanel = ({
 
     const handleBookNow = () => {
         if (filteredCustomizations.length > 0) {
-            setShowMechanicModal(true);
+            setShowDateModal(true);
         }
-    };
-
-    const handleMechanicNext = () => {
-        setShowMechanicModal(false);
-        setShowDateModal(true);
     };
 
     const handleDateNext = (selectedDate) => {
         setBookingData((prev) => ({ ...prev, date: selectedDate }));
         setShowDateModal(false);
+        setShowMechanicModal(true);
+    };
+
+    const handleMechanicNext = () => {
+        setShowMechanicModal(false);
         setShowConfirmationModal(true);
+    };
+
+    const handleMechanicBack = () => {
+        setShowMechanicModal(false);
+        setShowDateModal(true);
     };
 
     const handleConfirmBooking = async () => {
@@ -105,6 +110,11 @@ const VehiclePanel = ({
     const handleCloseDateModal = () => {
         setShowDateModal(false);
         setBookingData((prev) => ({ ...prev, date: null }));
+    };
+
+    const handleCloseMechanicModal = () => {
+        setShowMechanicModal(false);
+        setBookingData((prev) => ({ ...prev, mechanic_id: null }));
     };
 
     const submitBookingToSupabase = async () => {
@@ -199,19 +209,21 @@ const VehiclePanel = ({
                 <button onClick={handleBookNow}>Book Now</button>
             </div>
 
-            <MechanicSelectionModal
-                isOpen={showMechanicModal}
-                onClose={() => setShowMechanicModal(false)}
-                mechanics={mechanics}
-                onNext={handleMechanicNext}
-                bookingData={bookingData}
-                setBookingData={setBookingData}
-            />
-
             <DateSelectionModal
                 isOpen={showDateModal}
                 onClose={handleCloseDateModal}
                 onNext={handleDateNext}
+            />
+
+            <MechanicSelectionModal
+                isOpen={showMechanicModal}
+                onClose={handleCloseMechanicModal}
+                onBack={handleMechanicBack}
+                mechanics={mechanics}
+                onNext={handleMechanicNext}
+                bookingData={bookingData}
+                setBookingData={setBookingData}
+                selectedDate={bookingData.date}
             />
 
             <BookingConfirmationModal

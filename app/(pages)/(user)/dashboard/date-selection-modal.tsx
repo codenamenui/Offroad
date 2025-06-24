@@ -37,7 +37,11 @@ const DateSelectionModal = ({ isOpen, onClose, onNext }) => {
 
     const handleNext = () => {
         if (selectedDate) {
-            onNext(selectedDate);
+            const year = selectedDate.getFullYear();
+            const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+            const day = String(selectedDate.getDate()).padStart(2, "0");
+            const isoDate = `${year}-${month}-${day}`;
+            onNext(isoDate);
             setSelectedDate(null);
         }
     };
@@ -58,23 +62,14 @@ const DateSelectionModal = ({ isOpen, onClose, onNext }) => {
 
         dayNames.forEach((day) => {
             days.push(
-                <div
-                    key={day}
-                    style={{
-                        fontWeight: "bold",
-                        padding: "10px",
-                        textAlign: "center",
-                    }}
-                >
+                <div key={day} className="font-bold p-2.5 text-center">
                     {day}
                 </div>
             );
         });
 
         for (let i = 0; i < firstDay; i++) {
-            days.push(
-                <div key={`empty-${i}`} style={{ padding: "10px" }}></div>
-            );
+            days.push(<div key={`empty-${i}`} className="p-2.5"></div>);
         }
 
         for (let day = 1; day <= daysInMonth; day++) {
@@ -91,14 +86,15 @@ const DateSelectionModal = ({ isOpen, onClose, onNext }) => {
                 <div
                     key={day}
                     onClick={() => !isPast && handleDateClick(day)}
-                    style={{
-                        padding: "10px",
-                        textAlign: "center",
-                        cursor: isPast ? "not-allowed" : "pointer",
-                        backgroundColor: isSelected ? "#007bff" : "transparent",
-                        color: isPast ? "#ccc" : isSelected ? "white" : "black",
-                        border: "1px solid #ddd",
-                    }}
+                    className={`p-2.5 text-center border border-gray-300 ${
+                        isPast
+                            ? "cursor-not-allowed text-gray-300"
+                            : "cursor-pointer"
+                    } ${
+                        isSelected
+                            ? "bg-blue-600 text-white"
+                            : "bg-transparent text-black"
+                    }`}
                 >
                     {day}
                 </div>
@@ -111,35 +107,9 @@ const DateSelectionModal = ({ isOpen, onClose, onNext }) => {
     if (!isOpen) return null;
 
     return (
-        <div
-            style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: "rgba(0,0,0,0.5)",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-            }}
-        >
-            <div
-                style={{
-                    backgroundColor: "white",
-                    padding: "20px",
-                    borderRadius: "8px",
-                    minWidth: "400px",
-                }}
-            >
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: "20px",
-                    }}
-                >
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+            <div className="bg-white p-5 rounded-lg min-w-96">
+                <div className="flex justify-between items-center mb-5">
                     <button onClick={() => changeMonth(-1)}>&lt;</button>
                     <h3>
                         {currentDate.toLocaleDateString("en-US", {
@@ -149,20 +119,27 @@ const DateSelectionModal = ({ isOpen, onClose, onNext }) => {
                     </h3>
                     <button onClick={() => changeMonth(1)}>&gt;</button>
                 </div>
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(7, 1fr)",
-                        gap: "1px",
-                    }}
-                >
+                <div className="grid grid-cols-7 gap-px">
                     {renderCalendar()}
                 </div>
-                <div style={{ marginTop: "20px" }}>
-                    <button onClick={handleNext} disabled={!selectedDate}>
+                <div className="mt-5">
+                    <button
+                        onClick={handleNext}
+                        disabled={!selectedDate}
+                        className={`px-4 py-2 mr-2 border-none rounded ${
+                            selectedDate
+                                ? "bg-blue-600 text-white cursor-pointer"
+                                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        }`}
+                    >
                         Next
                     </button>
-                    <button onClick={handleClose}>Cancel</button>
+                    <button
+                        onClick={handleClose}
+                        className="px-4 py-2 bg-red-500 text-white border-none rounded cursor-pointer"
+                    >
+                        Cancel
+                    </button>
                 </div>
             </div>
         </div>
