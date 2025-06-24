@@ -15,6 +15,7 @@ const VehiclePanel = ({
     isEditMode = false,
     editBookingGroupId = null,
     setIsEditMode,
+    editBookingData = {},
 }) => {
     const [showMechanicModal, setShowMechanicModal] = useState(false);
     const [showDateModal, setShowDateModal] = useState(false);
@@ -25,8 +26,22 @@ const VehiclePanel = ({
     });
     const router = useRouter();
 
+    const getAvailableQuantity = (part) => {
+        let availableQuantity = part.available_quantity;
+
+        if (isEditMode && editBookingData[part.id]) {
+            availableQuantity += editBookingData[part.id];
+        }
+
+        return availableQuantity;
+    };
+
     const updatePartQuantity = (part, newQuantity) => {
-        if (newQuantity < 0 || newQuantity > part.stock) return;
+        if (newQuantity < 0) return;
+
+        const availableQuantity = getAvailableQuantity(part);
+
+        if (newQuantity > availableQuantity) return;
 
         setCustomizations((prev) => {
             const currentParts = prev?.parts || [];
@@ -251,7 +266,7 @@ const VehiclePanel = ({
                             }
                             disabled={
                                 customization.quantity >=
-                                customization.part.stock
+                                getAvailableQuantity(customization.part)
                             }
                         >
                             +

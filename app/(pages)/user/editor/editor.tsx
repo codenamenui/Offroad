@@ -14,6 +14,7 @@ interface EditorClientProps {
     mechanics: Tables<"mechanics">[];
     user: { name: string };
     editBooking?: BookingWithDetails[] | null;
+    editBookingData?: Record<number, number>;
 }
 
 type Part = Tables<"parts">;
@@ -42,6 +43,7 @@ const EditorPanel = ({
     mechanics,
     user,
     editBooking,
+    editBookingData = {},
 }: EditorClientProps) => {
     const [selectedVehicleId, setSelectedVehicleId] = useState(
         vehicles[0]?.id || 1
@@ -89,6 +91,7 @@ const EditorPanel = ({
                     isEditMode={isEditMode}
                     setIsEditMode={setIsEditMode}
                     editBookingGroupId={editBookingGroupId}
+                    editBookingData={editBookingData}
                 />
                 <div className="flex flex-col">
                     <Image
