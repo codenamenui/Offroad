@@ -8,6 +8,9 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import FilterPopup from "./filter-popup";
+import Image from "next/image";
+import { createClient } from "@/utils/supabase/client";
+import ProfilePopup from "./profile-popup";
 
 const SearchContext = createContext(null);
 
@@ -58,60 +61,93 @@ export const SearchProvider = ({ children, types }) => {
     );
 };
 
-const HeaderPanel = (user) => {
+const HeaderPanel = ({ user, search }) => {
     const { searchTerm, setSearchTerm, setShowFilterPopup } = useSearch();
-    console.log(user);
+    const [showProfilePopup, setShowProfilePopup] = useState(false);
+    const [profile, setProfile] = useState(user);
+
+    const onUpdate = (updatedUser) => {
+        setProfile(updatedUser);
+    };
+
+    const handleLogout = async () => {
+        const supabase = await createClient();
+        await supabase.auth.signOut();
+        window.location.href = "/login";
+    };
+
     return (
-        <header className="flex items-center justify-between p-4 border-b">
-            <div className="flex items-center space-x-6">
-                <div className="flex items-center space-x-2">
-                    <img src="/logo.png" alt="Logo" className="h-8 w-8" />
-                    <span className="font-bold text-lg">Putik Offroaders</span>
-                </div>
-                <nav className="flex space-x-4">
-                    <Link href="/" className="hover:text-gray-600">
-                        Home
-                    </Link>
-                    <Link href="/bookings" className="hover:text-gray-600">
-                        Bookings
-                    </Link>
-                </nav>
-            </div>
-
-            <div className="flex items-center space-x-4">
-                <input
-                    type="text"
-                    placeholder="Search parts..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="border p-2 rounded"
-                />
-                <button
-                    onClick={() => setShowFilterPopup(true)}
-                    className="border p-2 rounded"
-                >
-                    <Filter size={16} />
-                </button>
-            </div>
-
-            <DropdownMenu>
-                <DropdownMenuTrigger className="p-2">
-                    <Menu size={20} />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                    <DropdownMenuItem asChild>
-                        <Link
-                            href="/profile"
-                            className="flex items-center space-x-2"
-                        >
-                            <User size={16} />
-                            <span>{user.user.name}</span>
+        <>
+            <header className="flex items-center justify-between p-4 border-b">
+                <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-2">
+                        <Image
+                            src="/logo.png"
+                            alt="Logo"
+                            width={100}
+                            height={100}
+                            className="h-8 w-8"
+                        />
+                        <span className="font-bold text-lg">
+                            Putik Offroaders
+                        </span>
+                    </div>
+                    <nav className="flex space-x-4">
+                        <Link href="/" className="hover:text-gray-600">
+                            Home
                         </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>Logout</DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        </header>
+                        <Link href="/bookings" className="hover:text-gray-600">
+                            Bookings
+                        </Link>
+                    </nav>
+                </div>
+
+                {search && (
+                    <div className="flex items-center space-x-4">
+                        <input
+                            type="text"
+                            placeholder="Search parts..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="border p-2 rounded"
+                        />
+                        <button
+                            onClick={() => setShowFilterPopup(true)}
+                            className="border p-2 rounded"
+                        >
+                            <Filter size={16} />
+                        </button>
+                    </div>
+                )}
+
+                <DropdownMenu>
+                    <DropdownMenuTrigger className="p-2">
+                        <Menu size={20} />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem
+                            onClick={() => setShowProfilePopup(true)}
+                        >
+                            <div className="flex items-center space-x-2">
+                                <User size={16} />
+                                <span>{profile.name}</span>
+                            </div>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleLogout}>
+                            Logout
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </header>
+
+            {showProfilePopup && (
+                <ProfilePopup
+                    onUpdate={onUpdate}
+                    user={profile}
+                    onClose={() => setShowProfilePopup(false)}
+                />
+            )}
+        </>
     );
 };
 

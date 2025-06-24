@@ -43,7 +43,7 @@ const DashboardPanel = ({
     const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
     return (
         <SearchProvider types={types}>
-            <HeaderPanel user={user} />
+            <HeaderPanel user={user} search={true} />
             <div className="flex">
                 <VehiclePanel
                     vehicles={vehicles}

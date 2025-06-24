@@ -67,7 +67,7 @@ export default async function DashboardPage() {
         } = await supabase.auth.getUser();
         const { data: profile } = await supabase
             .from("users")
-            .select("name")
+            .select("*")
             .eq("user_id", user.id)
             .single();
         return (
