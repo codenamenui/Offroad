@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
-import BookingRequestsPanel from "./booking-requests";
 import { Tables } from "@/data/database.types";
+import BookingRequestsPanel from "../../user/bookings/booking-requests";
 
 type User = Tables<"users">;
 type Booking = Tables<"bookings">;
@@ -16,9 +16,9 @@ interface BookingWithDetails extends Booking {
     mechanics: Mechanic;
 }
 
-async function getBookingRequests(
+async function getMechanicBookings(
     supabase,
-    userId: string
+    mechanicId: string
 ): Promise<BookingWithDetails[]> {
     const { data: bookings, error } = await supabase
         .from("bookings")
@@ -33,11 +33,11 @@ async function getBookingRequests(
             mechanics (*)
         `
         )
-        .eq("user_id", userId);
+        .eq("mechanic_id", mechanicId);
 
     if (error) {
-        console.error("Error fetching booking requests:", error);
-        throw new Error(`Failed to fetch booking requests: ${error.message}`);
+        console.error("Error fetching mechanic bookings:", error);
+        throw new Error(`Failed to fetch mechanic bookings: ${error.message}`);
     }
 
     const statusPriority: Record<string, number> = {
@@ -57,7 +57,6 @@ async function getBookingRequests(
             return statusA - statusB;
         }
 
-        // If status is the same, sort by date (newest first)
         const dateA = a.date ? new Date(a.date).getTime() : 0;
         const dateB = b.date ? new Date(b.date).getTime() : 0;
 
@@ -65,38 +64,43 @@ async function getBookingRequests(
     });
 }
 
-export default async function BookingRequestsPage() {
+export default async function MechanicDashboard() {
     try {
         const supabase = await createClient();
         const {
             data: { user },
         } = await supabase.auth.getUser();
-        const { data: profile } = await supabase
-            .from("users")
+
+        const { data: mechanic } = await supabase
+            .from("mechanics")
             .select("*")
-            .eq("user_id", user.id)
+            .eq("profile_id", user.id)
             .single();
 
-        if (!user) {
+        if (!user || !mechanic) {
             return (
                 <div className="error-container">
-                    <h2>Please log in to view your booking requests</h2>
+                    <h2>Please log in as a mechanic to view your dashboard</h2>
                 </div>
             );
         }
 
-        const bookings = await getBookingRequests(supabase, user.id);
-
+        const bookings = await getMechanicBookings(supabase, mechanic.id);
+        console.log(bookings);
         return (
             <div>
-                <BookingRequestsPanel user={profile} bookings={bookings} />
+                <BookingRequestsPanel
+                    user={mechanic}
+                    bookings={bookings}
+                    userType="mechanic"
+                />
             </div>
         );
     } catch (error) {
-        console.error("Booking requests error:", error);
+        console.error("Mechanic dashboard error:", error);
         return (
             <div className="error-container">
-                <h2>Unable to load booking requests</h2>
+                <h2>Unable to load mechanic dashboard</h2>
                 <p>Please try again later.</p>
             </div>
         );

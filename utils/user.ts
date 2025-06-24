@@ -223,6 +223,30 @@ export async function signUpMechanic(
     return { user: data.user, session: data.session };
 }
 
+export async function signUpMechanicWithOAuth() {
+    const supabase = await createClient();
+    const origin = (await headers()).get("origin");
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+            redirectTo: `${origin}/api/auth/callback`,
+            queryParams: {
+                access_type: "offline",
+                prompt: "consent",
+            },
+            // Add mechanic-specific metadata if needed
+        },
+    });
+
+    if (error) {
+        console.log("Error signing up mechanic with OAuth:", error.message);
+        throw error;
+    }
+
+    return redirect(data.url);
+}
+
 export async function signUpWithEmailAndUpdatePhone(
     email: string,
     password: string,

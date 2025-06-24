@@ -6,6 +6,7 @@ export async function GET(request: Request) {
     const code = requestUrl.searchParams.get("code");
     const error = requestUrl.searchParams.get("error");
     const error_description = requestUrl.searchParams.get("error_description");
+    const signup_type = requestUrl.searchParams.get("signup_type"); // Get signup type
     const origin = requestUrl.origin;
 
     if (error) {
@@ -34,7 +35,13 @@ export async function GET(request: Request) {
             const userId = data.user.id;
             const userEmail = data.user.email;
             const userMeta = data.user.user_metadata || {};
-            const role = userMeta.role || "user";
+
+            // Determine role - prioritize signup_type parameter, then user metadata
+            const role =
+                signup_type === "mechanic"
+                    ? "mechanic"
+                    : userMeta.role || "user";
+
             const name =
                 userMeta.display_name ||
                 userMeta.full_name ||
@@ -42,13 +49,15 @@ export async function GET(request: Request) {
                 "Unnamed";
             const profileImage = userMeta.avatar_url || null;
 
+            // Check if user profile exists
             const { data: existingProfile } = await supabase
                 .from("user_profiles")
-                .select("id")
+                .select("id, role")
                 .eq("id", userId)
                 .single();
 
             if (!existingProfile) {
+                // Create new profile with determined role
                 const { error: insertProfileError } = await supabase
                     .from("user_profiles")
                     .insert({
@@ -61,9 +70,21 @@ export async function GET(request: Request) {
                         `${origin}/login?error=profile_creation_failed`
                     );
                 }
+            } else if (
+                !existingProfile.role ||
+                existingProfile.role === "user"
+            ) {
+                // Update role if it was a mechanic signup
+                if (signup_type === "mechanic") {
+                    await supabase
+                        .from("user_profiles")
+                        .update({ role: "mechanic" })
+                        .eq("id", userId);
+                }
             }
 
-            if (role === "mechanic") {
+            // Handle mechanic-specific logic
+            if (role === "mechanic" || signup_type === "mechanic") {
                 const { data: existingMechanic } = await supabase
                     .from("mechanics")
                     .select("id")
@@ -88,45 +109,49 @@ export async function GET(request: Request) {
                 }
             }
 
-            const { data: userRecord, error: userRecordError } = await supabase
+            // Create/update basic user record
+            const { error: upsertUserError } = await supabase
                 .from("users")
-                .select("contact_number")
-                .eq("user_id", userId)
-                .single();
+                .upsert({
+                    user_id: userId,
+                    name: name,
+                    email: userEmail,
+                    contact_number:
+                        userMeta.phone ||
+                        userMeta.phone_number ||
+                        userMeta.contact_number ||
+                        null,
+                });
 
-            if (userRecordError) {
-                console.error(
-                    "Error fetching user record:",
-                    userRecordError.message
-                );
+            if (upsertUserError) {
+                console.error("Error upserting user:", upsertUserError.message);
             }
 
+            // Check if OAuth user needs to complete profile
+            const isOAuthUser = data.user.app_metadata?.provider !== "email";
             const hasPhone =
                 userMeta.phone ||
                 userMeta.phone_number ||
-                userMeta.contact_number ||
-                userRecord?.contact_number;
-
-            const isOAuthUser = data.user.app_metadata?.provider !== "email";
+                userMeta.contact_number;
 
             if (isOAuthUser && !hasPhone) {
                 return NextResponse.redirect(`${origin}/complete-profile`);
             }
 
+            // Redirect based on role
+            if (role === "mechanic" || signup_type === "mechanic") {
+                return NextResponse.redirect(`${origin}/mechanic/dashboard`);
+            }
+
             const isNewUser =
                 data.user.created_at === data.user.last_sign_in_at;
-
             if (isNewUser && !isOAuthUser) {
                 return NextResponse.redirect(`${origin}/onboarding`);
             }
 
-            if (role === "mechanic") {
-                return NextResponse.redirect(`${origin}/mechanic/dashboard`);
-            }
-
             return NextResponse.redirect(`${origin}/editor`);
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
+            console.error("Callback error:", err);
             return NextResponse.redirect(
                 `${origin}/login?error=unexpected_error`
             );

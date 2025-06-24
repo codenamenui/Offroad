@@ -135,7 +135,7 @@ const VehiclePanel = ({
     const handleCancelEdit = () => {
         setIsEditMode(false);
         setCustomizations({ parts: [] });
-        router.push("/editor");
+        router.push("/user/editor");
     };
 
     const submitBookingToSupabase = async () => {
@@ -202,7 +202,7 @@ const VehiclePanel = ({
         setCustomizations({
             parts: [],
         });
-        router.push("/editor");
+        router.push("/user/editor");
     };
 
     return (

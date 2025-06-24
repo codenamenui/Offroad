@@ -11,8 +11,6 @@ const SignUpButton = () => {
     const handleSignUp = async () => {
         setIsSigningUp(true);
         try {
-            // OAuth sign up uses the same function as sign in
-            // Supabase automatically creates account if user doesn't exist
             await signInUserOAuth();
         } finally {
             setIsSigningUp(false);

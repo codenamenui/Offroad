@@ -93,10 +93,16 @@ const HeaderPanel = ({ user, search }) => {
                         </span>
                     </div>
                     <nav className="flex space-x-4">
-                        <Link href="/editor" className="hover:text-gray-600">
+                        <Link
+                            href="/user/editor"
+                            className="hover:text-gray-600"
+                        >
                             Editor
                         </Link>
-                        <Link href="/bookings" className="hover:text-gray-600">
+                        <Link
+                            href="/user/bookings"
+                            className="hover:text-gray-600"
+                        >
                             Bookings
                         </Link>
                     </nav>

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import SignUpButton from "./signup";
-import { signUpWithEmail, signUpMechanic } from "@/utils/user";
+import { signUpWithEmail } from "@/utils/user";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -12,9 +12,6 @@ const RegisterPage = () => {
     const [error, setError] = useState<string>("");
     const [message, setMessage] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
-    const [selectedRole, setSelectedRole] = useState<"user" | "mechanic">(
-        "user"
-    );
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -46,25 +43,12 @@ const RegisterPage = () => {
             const displayName = name?.trim() || undefined;
             const phoneNumber = contact?.trim() || undefined;
 
-            let result;
-
-            if (selectedRole === "mechanic") {
-                const profileImage = formData.get("profileImage") as File;
-                result = await signUpMechanic(
-                    email,
-                    password,
-                    displayName,
-                    phoneNumber,
-                    profileImage
-                );
-            } else {
-                result = await signUpWithEmail(
-                    email,
-                    password,
-                    displayName,
-                    phoneNumber
-                );
-            }
+            const result = await signUpWithEmail(
+                email,
+                password,
+                displayName,
+                phoneNumber
+            );
 
             if (result.error) {
                 setError(result.error);
@@ -98,39 +82,6 @@ const RegisterPage = () => {
                     {message}
                 </div>
             )}
-
-            <div>
-                <label>Account Type</label>
-                <div>
-                    <button
-                        type="button"
-                        onClick={() => setSelectedRole("user")}
-                        style={{
-                            backgroundColor:
-                                selectedRole === "user" ? "#e3f2fd" : "white",
-                            border: "1px solid #ccc",
-                            padding: "8px 16px",
-                            marginRight: "8px",
-                        }}
-                    >
-                        Customer
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setSelectedRole("mechanic")}
-                        style={{
-                            backgroundColor:
-                                selectedRole === "mechanic"
-                                    ? "#e3f2fd"
-                                    : "white",
-                            border: "1px solid #ccc",
-                            padding: "8px 16px",
-                        }}
-                    >
-                        Mechanic
-                    </button>
-                </div>
-            </div>
 
             <form onSubmit={handleSubmit}>
                 <label htmlFor="name">Full Name</label>
@@ -181,21 +132,6 @@ const RegisterPage = () => {
                     disabled={loading}
                 />
 
-                {selectedRole === "mechanic" && (
-                    <div>
-                        <label htmlFor="profileImage">
-                            Profile Image (Optional)
-                        </label>
-                        <Input
-                            type="file"
-                            id="profileImage"
-                            name="profileImage"
-                            accept="image/*"
-                            disabled={loading}
-                        />
-                    </div>
-                )}
-
                 <Input
                     type="submit"
                     value={loading ? "Creating Account..." : "Get Started"}
@@ -203,10 +139,12 @@ const RegisterPage = () => {
                 />
             </form>
 
-            <br />
-            <div>or</div>
-            <br />
-            <SignUpButton />
+            <div>
+                <br />
+                <div>or</div>
+                <br />
+                <SignUpButton />
+            </div>
             <br />
             <div>
                 already have an account? <Link href={"/login"}>Log in</Link>

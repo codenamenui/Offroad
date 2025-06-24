@@ -6,12 +6,14 @@ import BookingGroupModal from "./booking-group-modal";
 import Image from "next/image";
 import HeaderPanel, { SearchProvider } from "../editor/header";
 
+type User = Tables<"users">;
 type Booking = Tables<"bookings">;
 type Part = Tables<"parts">;
 type Vehicle = Tables<"vehicles">;
 type Mechanic = Tables<"mechanics">;
 
 interface BookingWithDetails extends Booking {
+    users: User;
     parts: Part & {
         vehicles: Vehicle;
     };
@@ -55,7 +57,7 @@ export default function BookingRequestsPanel({
         }
 
         if (statuses.every((s) => s === "completed")) return "completed";
-        if (statuses.every((s) => s === "confirmed")) return "confirmed";
+        if (statuses.every((s) => s === "accepted")) return "accepted";
         if (statuses.every((s) => s === "pending")) return "pending";
         if (statuses.every((s) => s === "cancelled")) return "cancelled";
         if (statuses.every((s) => s === "rejected")) return "rejected";
@@ -127,7 +129,7 @@ export default function BookingRequestsPanel({
         switch (status?.toLowerCase()) {
             case "pending":
                 return "bg-yellow-100 text-yellow-800";
-            case "confirmed":
+            case "accepted":
                 return "bg-green-100 text-green-800";
             case "completed":
                 return "bg-blue-100 text-blue-800";
@@ -345,10 +347,30 @@ export default function BookingRequestsPanel({
                                                         </div>
                                                     </>
                                                 ) : (
-                                                    <div className="text-right">
-                                                        <p className="font-medium text-gray-900">
-                                                            Customer Name
-                                                        </p>
+                                                    <div className="flex items-center space-x-3">
+                                                        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+                                                            <span className="text-xs font-medium text-gray-600">
+                                                                {group.bookings[0]?.users?.name?.charAt(
+                                                                    0
+                                                                ) || "C"}
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="font-medium text-gray-900">
+                                                                {group
+                                                                    .bookings[0]
+                                                                    ?.users
+                                                                    ?.name ||
+                                                                    "Unknown Customer"}
+                                                            </p>
+                                                            <p className="text-xs text-gray-500">
+                                                                {group
+                                                                    .bookings[0]
+                                                                    ?.users
+                                                                    ?.contact_number ||
+                                                                    "No contact"}
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>

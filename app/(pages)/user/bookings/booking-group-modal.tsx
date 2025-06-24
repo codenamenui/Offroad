@@ -6,12 +6,14 @@ import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 
+type User = Tables<"users">;
 type Booking = Tables<"bookings">;
 type Part = Tables<"parts">;
 type Vehicle = Tables<"vehicles">;
 type Mechanic = Tables<"mechanics">;
 
 interface BookingWithDetails extends Booking {
+    users: User;
     parts: Part & {
         vehicles: Vehicle;
     };
@@ -107,12 +109,12 @@ export default function BookingGroupModal({
     };
 
     const handleCancelGroup = () => handleGroupStatusChange("cancelled");
-    const handleAcceptGroup = () => handleGroupStatusChange("confirmed");
+    const handleAcceptGroup = () => handleGroupStatusChange("accepted");
     const handleRejectGroup = () => handleGroupStatusChange("rejected");
 
     const handleChangeInEditor = () => {
         router.push(
-            `/editor?edit_booking=${currentBookingGroup.booking_group_id}`
+            `/user/editor?edit_booking=${currentBookingGroup.booking_group_id}`
         );
         onClose();
     };
@@ -131,7 +133,6 @@ export default function BookingGroupModal({
                         ×
                     </button>
                 </div>
-
                 <div className="mb-4">
                     {currentBookingGroup.vehicle?.url && (
                         <Image
@@ -143,6 +144,43 @@ export default function BookingGroupModal({
                         />
                     )}
                 </div>
+
+                {userType === "mechanic" && (
+                    <div className="mb-6">
+                        <h4 className="font-semibold text-gray-900 mb-3">
+                            Customer Details
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Name
+                                </label>
+                                <p className="text-gray-900">
+                                    {currentBookingGroup.bookings[0]?.users
+                                        ?.name || "Unknown"}
+                                </p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Contact Number
+                                </label>
+                                <p className="text-gray-900">
+                                    {currentBookingGroup.bookings[0]?.users
+                                        ?.contact_number || "Not provided"}
+                                </p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Email
+                                </label>
+                                <p className="text-gray-900">
+                                    {currentBookingGroup.bookings[0]?.users
+                                        ?.email || "Not provided"}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="space-y-4 mb-6">
                     <div>
@@ -176,7 +214,7 @@ export default function BookingGroupModal({
                                     currentBookingGroup.status === "pending"
                                         ? "bg-yellow-100 text-yellow-800"
                                         : currentBookingGroup.status ===
-                                          "confirmed"
+                                          "accepted"
                                         ? "bg-green-100 text-green-800"
                                         : currentBookingGroup.status ===
                                           "completed"
@@ -232,7 +270,6 @@ export default function BookingGroupModal({
                         </div>
                     )}
                 </div>
-
                 <div className="border-t pt-4">
                     <h4 className="font-semibold text-gray-900 mb-3">
                         Parts Ordered
@@ -291,7 +328,6 @@ export default function BookingGroupModal({
                         </div>
                     </div>
                 </div>
-
                 <div className="flex justify-end space-x-3 mt-6">
                     <button
                         onClick={onClose}
