@@ -35,12 +35,16 @@ const LoginPage = () => {
             const {
                 data: { user },
             } = await supabase.auth.getUser();
+            console.log(user);
+            if (user == null) {
+                setError(result.error);
+                throw result.error;
+            }
             const { data } = await supabase
                 .from("user_profiles")
                 .select("role")
-                .eq("id", user.id)
+                .eq("id", user?.id)
                 .single();
-
             if (result.error) {
                 setError(result.error);
             } else if (data.role == "user") {
@@ -48,10 +52,10 @@ const LoginPage = () => {
             } else if (data.role == "admin") {
                 router.push("/admin/dashboard");
             } else {
-              router.push("/mechanic/bookings")
+                router.push("/mechanic/bookings");
             }
         } catch (err) {
-            setError("An unexpected error occurred");
+            setError("Login error:" + err);
             console.error("Login error:", err);
         } finally {
             setLoading(false);
