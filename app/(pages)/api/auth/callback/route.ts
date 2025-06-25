@@ -140,7 +140,7 @@ export async function GET(request: Request) {
 
             // Redirect based on role
             if (role === "mechanic" || signup_type === "mechanic") {
-                return NextResponse.redirect(`${origin}/mechanic/dashboard`);
+                return NextResponse.redirect(`${origin}/mechanic/bookings`);
             }
 
             const isNewUser =

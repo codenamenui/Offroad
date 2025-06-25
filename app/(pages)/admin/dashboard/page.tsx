@@ -1,6 +1,6 @@
-// app/admin/page.tsx
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
+import SignOutButton from "./sign-out-button";
 
 export default async function AdminDashboard() {
     const supabase = await createClient();
@@ -20,9 +20,12 @@ export default async function AdminDashboard() {
     return (
         <div className="min-h-screen bg-gray-50 p-8">
             <div className="max-w-7xl mx-auto">
-                <h1 className="text-3xl font-bold text-gray-900 mb-8">
-                    Admin Dashboard
-                </h1>
+                <div className="flex justify-between items-center mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900">
+                        Admin Dashboard
+                    </h1>
+                    <SignOutButton />
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <Link href="/admin/vehicles" className="block">
@@ -162,110 +165,6 @@ export default async function AdminDashboard() {
                             </p>
                         </div>
                     </Link>
-                </div>
-
-                {/* Quick Actions Section */}
-                <div className="mt-12">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                        Quick Actions
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <Link
-                            href="/admin/mechanics/create"
-                            className="flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-lg p-4 hover:bg-orange-100 transition-colors"
-                        >
-                            <div className="text-orange-600">
-                                <svg
-                                    className="w-6 h-6"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                                    />
-                                </svg>
-                            </div>
-                            <div className="text-orange-800 font-medium">
-                                Create Mechanic
-                            </div>
-                        </Link>
-
-                        <Link
-                            href="/admin/vehicles/create"
-                            className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg p-4 hover:bg-blue-100 transition-colors"
-                        >
-                            <div className="text-blue-600">
-                                <svg
-                                    className="w-6 h-6"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                                    />
-                                </svg>
-                            </div>
-                            <div className="text-blue-800 font-medium">
-                                Add Vehicle
-                            </div>
-                        </Link>
-
-                        <Link
-                            href="/admin/parts/create"
-                            className="flex items-center gap-3 bg-purple-50 border border-purple-200 rounded-lg p-4 hover:bg-purple-100 transition-colors"
-                        >
-                            <div className="text-purple-600">
-                                <svg
-                                    className="w-6 h-6"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                                    />
-                                </svg>
-                            </div>
-                            <div className="text-purple-800 font-medium">
-                                Add Part
-                            </div>
-                        </Link>
-
-                        <Link
-                            href="/admin/types/create"
-                            className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-4 hover:bg-green-100 transition-colors"
-                        >
-                            <div className="text-green-600">
-                                <svg
-                                    className="w-6 h-6"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                                    />
-                                </svg>
-                            </div>
-                            <div className="text-green-800 font-medium">
-                                Add Type
-                            </div>
-                        </Link>
-                    </div>
                 </div>
             </div>
         </div>

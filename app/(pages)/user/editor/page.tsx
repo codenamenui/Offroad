@@ -28,7 +28,11 @@ async function getVehicles(supabase): Promise<Vehicle[]> {
     return vehicles || [];
 }
 
-async function getPartsWithAvailability(supabase): Promise<Part[]> {
+async function getPartsWithAvailability(
+    supabase,
+    userId?: string,
+    editBookingGroupId?: number
+): Promise<Part[]> {
     const { data: parts, error: partsError } = await supabase
         .from("parts")
         .select("*");
@@ -38,10 +42,18 @@ async function getPartsWithAvailability(supabase): Promise<Part[]> {
         throw new Error(`Failed to fetch parts: ${partsError.message}`);
     }
 
-    const { data: bookings, error: bookingsError } = await supabase
+    let bookingsQuery = supabase
         .from("bookings")
-        .select("part_id, quantity")
+        .select("part_id, quantity, user_id, booking_group_id")
         .in("status", ["pending", "accepted", "in_progress"]);
+
+    if (userId && editBookingGroupId) {
+        bookingsQuery = bookingsQuery.or(
+            `user_id.neq.${userId},booking_group_id.eq.${editBookingGroupId}`
+        );
+    }
+
+    const { data: bookings, error: bookingsError } = await bookingsQuery;
 
     if (bookingsError) {
         console.error("Error fetching bookings:", bookingsError);
@@ -121,13 +133,14 @@ export default async function EditorPage({
 }) {
     try {
         const supabase = await createClient();
-        const vehicles = await getVehicles(supabase);
-        const parts = await getPartsWithAvailability(supabase);
-        const types = await getTypes(supabase);
-        const mechanics = await getMechanics(supabase);
         const {
             data: { user },
         } = await supabase.auth.getUser();
+
+        const vehicles = await getVehicles(supabase);
+        const types = await getTypes(supabase);
+        const mechanics = await getMechanics(supabase);
+
         const { data: profile } = await supabase
             .from("users")
             .select("*")
@@ -136,9 +149,11 @@ export default async function EditorPage({
 
         let editBooking = null;
         let editBookingData = null;
+        let editBookingGroupId = null;
+
         if (searchParams.edit_booking) {
-            const bookingGroupId = parseInt(searchParams.edit_booking);
-            editBooking = await getEditBooking(supabase, bookingGroupId);
+            editBookingGroupId = parseInt(searchParams.edit_booking);
+            editBooking = await getEditBooking(supabase, editBookingGroupId);
 
             editBookingData =
                 editBooking?.reduce((acc, booking) => {
@@ -147,6 +162,12 @@ export default async function EditorPage({
                     return acc;
                 }, {}) || {};
         }
+
+        const parts = await getPartsWithAvailability(
+            supabase,
+            user?.id,
+            editBookingGroupId
+        );
 
         return (
             <EditorPanel

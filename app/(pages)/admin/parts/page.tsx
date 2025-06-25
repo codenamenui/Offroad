@@ -167,7 +167,7 @@ export default function PartsPage() {
                 <div className="flex justify-between items-center mb-8">
                     <div>
                         <Link
-                            href="/admin"
+                            href="/admin/dashboard"
                             className="text-blue-600 hover:underline mb-2 inline-block"
                         >
                             ← Back to Dashboard

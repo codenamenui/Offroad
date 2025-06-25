@@ -61,7 +61,7 @@ export const SearchProvider = ({ children, types }) => {
     );
 };
 
-const HeaderPanel = ({ user, search }) => {
+const HeaderPanel = ({ user, search, mechanic = false }) => {
     const { searchTerm, setSearchTerm, setShowFilterPopup } = useSearch();
     const [showProfilePopup, setShowProfilePopup] = useState(false);
     const [profile, setProfile] = useState(user);
@@ -93,18 +93,37 @@ const HeaderPanel = ({ user, search }) => {
                         </span>
                     </div>
                     <nav className="flex space-x-4">
-                        <Link
-                            href="/user/editor"
-                            className="hover:text-gray-600"
-                        >
-                            Editor
-                        </Link>
-                        <Link
-                            href="/user/bookings"
-                            className="hover:text-gray-600"
-                        >
-                            Bookings
-                        </Link>
+                        {mechanic ? (
+                            <>
+                                <Link
+                                    href="/mechanic/bookings"
+                                    className="hover:text-gray-600"
+                                >
+                                    Bookings
+                                </Link>
+                                <Link
+                                    href="/mechanic/leaves"
+                                    className="hover:text-gray-600"
+                                >
+                                    Leaves
+                                </Link>
+                            </>
+                        ) : (
+                            <>
+                                <Link
+                                    href="/user/editor"
+                                    className="hover:text-gray-600"
+                                >
+                                    Editor
+                                </Link>
+                                <Link
+                                    href="/user/bookings"
+                                    className="hover:text-gray-600"
+                                >
+                                    Bookings
+                                </Link>
+                            </>
+                        )}
                     </nav>
                 </div>
 

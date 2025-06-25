@@ -24,24 +24,38 @@ const VehiclePanel = ({
         mechanic_id: null,
         date: null,
     });
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
     const getAvailableQuantity = (part) => {
-        let availableQuantity = part.available_quantity;
+        const currentBookingQuantity =
+            isEditMode && editBookingData[part.id]
+                ? editBookingData[part.id]
+                : 0;
+        const currentCustomizationQuantity =
+            customizations?.parts?.find((c) => c.part.id === part.id)
+                ?.quantity || 0;
 
-        if (isEditMode && editBookingData[part.id]) {
-            availableQuantity += editBookingData[part.id];
-        }
-
-        return availableQuantity;
+        return (
+            part.available_quantity +
+            currentBookingQuantity -
+            currentCustomizationQuantity
+        );
     };
 
     const updatePartQuantity = (part, newQuantity) => {
-        if (newQuantity < 0) return;
+        if (newQuantity < 0 || isUpdating || isLoading) return;
 
         const availableQuantity = getAvailableQuantity(part);
 
-        if (newQuantity > availableQuantity) return;
+        if (
+            newQuantity >
+            availableQuantity +
+                (customizations?.parts?.find((c) => c.part.id === part.id)
+                    ?.quantity || 0)
+        )
+            return;
 
         setCustomizations((prev) => {
             const currentParts = prev?.parts || [];
@@ -95,13 +109,13 @@ const VehiclePanel = ({
         ) || [];
 
     const handleBookNow = () => {
-        if (filteredCustomizations.length > 0) {
+        if (filteredCustomizations.length > 0 && !isUpdating && !isLoading) {
             setShowDateModal(true);
         }
     };
 
     const handleUpdateBooking = () => {
-        if (filteredCustomizations.length > 0) {
+        if (filteredCustomizations.length > 0 && !isUpdating && !isLoading) {
             setShowDateModal(true);
         }
     };
@@ -123,13 +137,18 @@ const VehiclePanel = ({
     };
 
     const handleConfirmBooking = async () => {
-        if (isEditMode) {
-            await updateBookingInSupabase();
-        } else {
-            await submitBookingToSupabase();
+        setIsUpdating(true);
+        setIsLoading(true);
+        try {
+            if (isEditMode) {
+                await updateBookingInSupabase();
+            } else {
+                await submitBookingToSupabase();
+            }
+        } finally {
+            setIsUpdating(false);
+            setIsLoading(false);
         }
-        setShowConfirmationModal(false);
-        setBookingData({ mechanic_id: null, date: null });
     };
 
     const handleCancelBooking = () => {
@@ -148,9 +167,32 @@ const VehiclePanel = ({
     };
 
     const handleCancelEdit = () => {
+        if (isUpdating || isLoading) return;
         setIsEditMode(false);
         setCustomizations({ parts: [] });
         router.push("/user/editor");
+    };
+
+    const refreshPartsAvailability = async () => {
+        const supabase = await createClient();
+
+        let bookingsQuery = supabase
+            .from("bookings")
+            .select("part_id, quantity")
+            .in("status", ["pending", "accepted", "in_progress"]);
+
+        const { data: bookings } = await bookingsQuery;
+
+        const bookingsByPart =
+            bookings?.reduce((acc, booking) => {
+                if (!acc[booking.part_id]) {
+                    acc[booking.part_id] = 0;
+                }
+                acc[booking.part_id] += booking.quantity || 0;
+                return acc;
+            }, {}) || {};
+
+        return bookingsByPart;
     };
 
     const submitBookingToSupabase = async () => {
@@ -158,6 +200,20 @@ const VehiclePanel = ({
         const {
             data: { user },
         } = await supabase.auth.getUser();
+
+        const updatedBookings = await refreshPartsAvailability();
+
+        for (const customization of filteredCustomizations) {
+            const currentlyBooked = updatedBookings[customization.part.id] || 0;
+            const availableNow = customization.part.stock - currentlyBooked;
+
+            if (customization.quantity > availableNow) {
+                window.alert(
+                    `Not enough stock for ${customization.part.name}. Available: ${availableNow}, Requested: ${customization.quantity}`
+                );
+                return;
+            }
+        }
 
         const { data: group } = await supabase
             .from("booking_groups")
@@ -179,11 +235,17 @@ const VehiclePanel = ({
             .from("bookings")
             .insert(bookingRecords);
 
-        if (error) console.error("Error inserting bookings:", error);
+        if (error) {
+            console.error("Error inserting bookings:", error);
+            window.alert("Error creating booking. Please try again.");
+            return;
+        }
 
         setCustomizations({
             parts: [],
         });
+        setShowConfirmationModal(false);
+        setBookingData({ mechanic_id: null, date: null });
     };
 
     const updateBookingInSupabase = async () => {
@@ -191,6 +253,25 @@ const VehiclePanel = ({
         const {
             data: { user },
         } = await supabase.auth.getUser();
+
+        const updatedBookings = await refreshPartsAvailability();
+
+        for (const customization of filteredCustomizations) {
+            const currentlyBooked = updatedBookings[customization.part.id] || 0;
+            const currentEditQuantity =
+                editBookingData[customization.part.id] || 0;
+            const availableNow =
+                customization.part.stock -
+                currentlyBooked +
+                currentEditQuantity;
+
+            if (customization.quantity > availableNow) {
+                window.alert(
+                    `Not enough stock for ${customization.part.name}. Available: ${availableNow}, Requested: ${customization.quantity}`
+                );
+                return;
+            }
+        }
 
         await supabase
             .from("bookings")
@@ -211,13 +292,27 @@ const VehiclePanel = ({
             .from("bookings")
             .insert(bookingRecords);
 
-        if (error) console.error("Error updating bookings:", error);
+        if (error) {
+            console.error("Error updating bookings:", error);
+            window.alert("Error updating booking. Please try again.");
+            return;
+        }
 
         setIsEditMode(false);
         setCustomizations({
             parts: [],
         });
-        router.push("/user/editor");
+        setShowConfirmationModal(false);
+        setBookingData({ mechanic_id: null, date: null });
+        router.push("/user/bookings");
+    };
+
+    const isQuantityAtMax = (part) => {
+        const currentQuantity =
+            customizations?.parts?.find((c) => c.part.id === part.id)
+                ?.quantity || 0;
+        const availableQuantity = getAvailableQuantity(part);
+        return currentQuantity >= availableQuantity + currentQuantity;
     };
 
     return (
@@ -230,7 +325,7 @@ const VehiclePanel = ({
                         className={
                             selectedVehicleId === vehicle.id ? "active" : ""
                         }
-                        disabled={isEditMode}
+                        disabled={isEditMode || isUpdating}
                     >
                         {vehicle.name}
                     </button>
@@ -253,6 +348,7 @@ const VehiclePanel = ({
                                     customization.quantity - 1
                                 )
                             }
+                            disabled={isUpdating || isLoading}
                         >
                             -
                         </button>
@@ -265,8 +361,9 @@ const VehiclePanel = ({
                                 )
                             }
                             disabled={
-                                customization.quantity >=
-                                getAvailableQuantity(customization.part)
+                                isQuantityAtMax(customization.part) ||
+                                isUpdating ||
+                                isLoading
                             }
                         >
                             +
@@ -280,13 +377,28 @@ const VehiclePanel = ({
 
                 {isEditMode ? (
                     <div>
-                        <button onClick={handleUpdateBooking}>
-                            Update Booking
+                        <button
+                            onClick={handleUpdateBooking}
+                            disabled={isUpdating || isLoading}
+                        >
+                            {isUpdating || isLoading
+                                ? "Processing..."
+                                : "Update Booking"}
                         </button>
-                        <button onClick={handleCancelEdit}>Cancel Edit</button>
+                        <button
+                            onClick={handleCancelEdit}
+                            disabled={isUpdating || isLoading}
+                        >
+                            Cancel Edit
+                        </button>
                     </div>
                 ) : (
-                    <button onClick={handleBookNow}>Book Now</button>
+                    <button
+                        onClick={handleBookNow}
+                        disabled={isUpdating || isLoading}
+                    >
+                        {isUpdating || isLoading ? "Processing..." : "Book Now"}
+                    </button>
                 )}
             </div>
 

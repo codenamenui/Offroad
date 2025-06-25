@@ -53,12 +53,12 @@ export async function updateSession(request: NextRequest) {
     // Define role-specific protected routes
     const protectedRoutes = {
         user: ["/user/editor", "/editor", "/bookings"],
-        mechanic: ["/mechanic/dashboard", "/schedule", "/mechanic"],
+        mechanic: ["/mechanic/bookings", "/schedule", "/mechanic"],
         admin: [
             "/admin/parts",
             "/admin/vehicles",
             "/admin/types",
-            "/admin",
+            "/admin/dashboard",
             "/manage",
         ],
     };
@@ -120,7 +120,7 @@ export async function updateSession(request: NextRequest) {
 
                 if (userRole === "mechanic" && (isUserRoute || isAdminRoute)) {
                     const url = request.nextUrl.clone();
-                    url.pathname = "/mechanic/dashboard";
+                    url.pathname = "/mechanic/bookings";
                     return NextResponse.redirect(url);
                 }
 

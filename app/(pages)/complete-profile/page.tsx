@@ -56,7 +56,7 @@ const CompleteProfileForm = () => {
             if (!userDataError && userData) {
                 setPhone(userData.contact_number || "");
             }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             setError("Failed to load user profile");
         } finally {
@@ -206,7 +206,7 @@ const CompleteProfileForm = () => {
                     }
                 }
 
-                router.push("/mechanic/dashboard");
+                router.push("/mechanic/bookings");
             } else {
                 router.push("/user/editor");
             }

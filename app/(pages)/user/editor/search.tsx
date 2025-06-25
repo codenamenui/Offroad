@@ -7,6 +7,8 @@ const SearchPanel = ({
     parts,
     customizations,
     setCustomizations,
+    isEditMode = false,
+    editBookingData = {},
 }) => {
     const { searchTerm, selectedTypes } = useSearch();
 
@@ -23,12 +25,32 @@ const SearchPanel = ({
         });
     }, [parts, selectedVehicleId, searchTerm, selectedTypes]);
 
+    // Same logic as VehiclePanel for getting available quantity
+    const getAvailableQuantity = (part) => {
+        const currentBookingQuantity =
+            isEditMode && editBookingData[part.id]
+                ? editBookingData[part.id]
+                : 0;
+        const currentCustomizationQuantity =
+            customizations?.parts?.find((c) => c.part.id === part.id)
+                ?.quantity || 0;
+
+        return (
+            part.available_quantity +
+            currentBookingQuantity -
+            currentCustomizationQuantity
+        );
+    };
+
     const handleAddPart = (part) => {
         const currentQuantity =
             customizations?.parts?.find((c) => c.part.id === part.id)
                 ?.quantity || 0;
 
-        if (currentQuantity < part.stock) {
+        const availableQuantity = getAvailableQuantity(part);
+
+        // Check if we can add more (same logic as VehiclePanel)
+        if (currentQuantity < availableQuantity + currentQuantity) {
             setCustomizations((prev) => {
                 const currentParts = prev?.parts || [];
                 const existingIndex = currentParts.findIndex(
@@ -52,13 +74,24 @@ const SearchPanel = ({
     };
 
     return (
-        <div className="border-l-2 p-4">
-            <div className="flex">
+        <div>
+            <div>
                 {filteredParts.map((part) => (
                     <PartItem
                         key={part.id}
                         part={part}
-                        onAddPart={handleAddPart}
+                        onAddPart={() => handleAddPart(part)}
+                        isDisabled={
+                            getAvailableQuantity(part) <= 0 ||
+                            (customizations?.parts?.find(
+                                (c) => c.part.id === part.id
+                            )?.quantity || 0) >=
+                                getAvailableQuantity(part) +
+                                    (customizations?.parts?.find(
+                                        (c) => c.part.id === part.id
+                                    )?.quantity || 0)
+                        }
+                        availableQuantity={getAvailableQuantity(part)}
                     />
                 ))}
             </div>

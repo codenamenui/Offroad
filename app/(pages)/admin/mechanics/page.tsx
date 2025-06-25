@@ -68,7 +68,7 @@ export default async function MechanicsPage() {
                 {/* Back to Dashboard */}
                 <div className="mt-8">
                     <Link
-                        href="/admin"
+                        href="/admin/dashboard"
                         className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800"
                     >
                         <svg
