@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Tables } from "@/data/database.types";
 import Link from "next/link";
+import Image from "next/image";
 
 type Part = Tables<"parts">;
 type Vehicle = Tables<"vehicles">;
@@ -74,10 +75,9 @@ export default function PartsPage() {
                 .toString(36)
                 .substring(2)}.${fileExt}`;
 
-            const { data: uploadData, error: uploadError } =
-                await supabase.storage
-                    .from("parts-images")
-                    .upload(fileName, selectedFile);
+            const { error: uploadError } = await supabase.storage
+                .from("parts-images")
+                .upload(fileName, selectedFile);
 
             if (uploadError) {
                 alert("Error uploading image: " + uploadError.message);
@@ -217,11 +217,18 @@ export default function PartsPage() {
                                     <tr key={part.id}>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             {part.url ? (
-                                                <img
-                                                    src={part.url}
-                                                    alt={part.name || "Part"}
-                                                    className="h-16 w-16 object-cover rounded-lg"
-                                                />
+                                                <div className="h-16 w-16 relative">
+                                                    <Image
+                                                        src={part.url}
+                                                        alt={
+                                                            part.name || "Part"
+                                                        }
+                                                        fill
+                                                        className="object-cover rounded-lg"
+                                                        sizes="64px"
+                                                        unoptimized={true} // Remove this if you configure Supabase in next.config.js
+                                                    />
+                                                </div>
                                             ) : (
                                                 <div className="h-16 w-16 bg-gray-200 rounded-lg flex items-center justify-center">
                                                     <span className="text-gray-400 text-xs">
@@ -333,11 +340,16 @@ export default function PartsPage() {
                                         />
                                         {formData.url && (
                                             <div className="mt-2">
-                                                <img
-                                                    src={formData.url}
-                                                    alt="Current"
-                                                    className="h-20 w-20 object-cover rounded"
-                                                />
+                                                <div className="h-20 w-20 relative">
+                                                    <Image
+                                                        src={formData.url}
+                                                        alt="Current"
+                                                        fill
+                                                        className="object-cover rounded"
+                                                        sizes="80px"
+                                                        unoptimized={true} // Remove this if you configure Supabase in next.config.js
+                                                    />
+                                                </div>
                                                 <p className="text-xs text-gray-500 mt-1">
                                                     Current image
                                                 </p>

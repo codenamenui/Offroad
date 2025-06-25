@@ -5,11 +5,17 @@ import { createClient } from "@/utils/supabase/server";
 export default async function AdminDashboard() {
     const supabase = await createClient();
 
-    const [vehiclesCount, typesCount, partsCount] = await Promise.all([
-        supabase.from("vehicles").select("*", { count: "exact", head: true }),
-        supabase.from("types").select("*", { count: "exact", head: true }),
-        supabase.from("parts").select("*", { count: "exact", head: true }),
-    ]);
+    const [vehiclesCount, typesCount, partsCount, mechanicsCount] =
+        await Promise.all([
+            supabase
+                .from("vehicles")
+                .select("*", { count: "exact", head: true }),
+            supabase.from("types").select("*", { count: "exact", head: true }),
+            supabase.from("parts").select("*", { count: "exact", head: true }),
+            supabase
+                .from("mechanics")
+                .select("*", { count: "exact", head: true }),
+        ]);
 
     return (
         <div className="min-h-screen bg-gray-50 p-8">
@@ -18,7 +24,7 @@ export default async function AdminDashboard() {
                     Admin Dashboard
                 </h1>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <Link href="/admin/vehicles" className="block">
                         <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                             <div className="flex items-center justify-between">
@@ -123,6 +129,143 @@ export default async function AdminDashboard() {
                             </p>
                         </div>
                     </Link>
+
+                    <Link href="/admin/mechanics" className="block">
+                        <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                                        Mechanics
+                                    </h2>
+                                    <p className="text-3xl font-bold text-orange-600">
+                                        {mechanicsCount.count || 0}
+                                    </p>
+                                </div>
+                                <div className="text-orange-500">
+                                    <svg
+                                        className="w-12 h-12"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                                        />
+                                    </svg>
+                                </div>
+                            </div>
+                            <p className="text-gray-600 mt-2">
+                                Manage mechanic accounts
+                            </p>
+                        </div>
+                    </Link>
+                </div>
+
+                {/* Quick Actions Section */}
+                <div className="mt-12">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                        Quick Actions
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <Link
+                            href="/admin/mechanics/create"
+                            className="flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-lg p-4 hover:bg-orange-100 transition-colors"
+                        >
+                            <div className="text-orange-600">
+                                <svg
+                                    className="w-6 h-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                    />
+                                </svg>
+                            </div>
+                            <div className="text-orange-800 font-medium">
+                                Create Mechanic
+                            </div>
+                        </Link>
+
+                        <Link
+                            href="/admin/vehicles/create"
+                            className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg p-4 hover:bg-blue-100 transition-colors"
+                        >
+                            <div className="text-blue-600">
+                                <svg
+                                    className="w-6 h-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                    />
+                                </svg>
+                            </div>
+                            <div className="text-blue-800 font-medium">
+                                Add Vehicle
+                            </div>
+                        </Link>
+
+                        <Link
+                            href="/admin/parts/create"
+                            className="flex items-center gap-3 bg-purple-50 border border-purple-200 rounded-lg p-4 hover:bg-purple-100 transition-colors"
+                        >
+                            <div className="text-purple-600">
+                                <svg
+                                    className="w-6 h-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                    />
+                                </svg>
+                            </div>
+                            <div className="text-purple-800 font-medium">
+                                Add Part
+                            </div>
+                        </Link>
+
+                        <Link
+                            href="/admin/types/create"
+                            className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-4 hover:bg-green-100 transition-colors"
+                        >
+                            <div className="text-green-600">
+                                <svg
+                                    className="w-6 h-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                    />
+                                </svg>
+                            </div>
+                            <div className="text-green-800 font-medium">
+                                Add Type
+                            </div>
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>
