@@ -56,6 +56,10 @@ export async function GET(request: Request) {
                 .eq("id", userId)
                 .single();
 
+            if (existingProfile) {
+                if (existingProfile.role === "admin")
+                    return NextResponse.redirect(`${origin}/admin/dashboard`);
+            }
             if (!existingProfile) {
                 // Create new profile with determined role
                 const { error: insertProfileError } = await supabase
@@ -149,7 +153,7 @@ export async function GET(request: Request) {
                 return NextResponse.redirect(`${origin}/onboarding`);
             }
 
-            return NextResponse.redirect(`${origin}/editor`);
+            return NextResponse.redirect(`${origin}/user/editor`);
         } catch (err) {
             console.error("Callback error:", err);
             return NextResponse.redirect(

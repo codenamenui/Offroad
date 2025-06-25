@@ -27,7 +27,7 @@ export default function CreateMechanicForm() {
             } else {
                 setMessage({ type: "error", text: result.message });
             }
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
             setMessage({ type: "error", text: "An unexpected error occurred" });
         } finally {
@@ -51,77 +51,8 @@ export default function CreateMechanicForm() {
 
             <div>
                 <label
-                    htmlFor="name"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                    Full Name *
-                </label>
-                <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter mechanic's full name"
-                />
-            </div>
-
-            <div>
-                <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                    Email Address *
-                </label>
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter email address"
-                />
-            </div>
-
-            <div>
-                <label
-                    htmlFor="password"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                    Password *
-                </label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    required
-                    minLength={6}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter password (min. 6 characters)"
-                />
-            </div>
-
-            <div>
-                <label
-                    htmlFor="contact_number"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                    Contact Number *
-                </label>
-                <input
-                    type="tel"
-                    id="contact_number"
-                    name="contact_number"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter contact number"
-                />
-            </div>
-
-            <div>
-                <label
                     htmlFor="profile_picture"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-gray-700 mb-1"
                 >
                     Profile Picture (Optional)
                 </label>
@@ -130,46 +61,115 @@ export default function CreateMechanicForm() {
                     id="profile_picture"
                     name="profile_picture"
                     accept="image/*"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
                 />
             </div>
 
-            <div className="flex gap-4">
-                <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {isLoading
-                        ? "Creating Account..."
-                        : "Create Mechanic Account"}
-                </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label
+                        htmlFor="name"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Full Name
+                    </label>
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        required
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+                        placeholder="Enter mechanic's full name"
+                    />
+                </div>
 
+                <div>
+                    <label
+                        htmlFor="email"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Email Address
+                    </label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        required
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+                        placeholder="Enter email address"
+                    />
+                </div>
+
+                <div>
+                    <label
+                        htmlFor="password"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Password
+                    </label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        required
+                        minLength={6}
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+                        placeholder="Enter password (min. 6 characters)"
+                    />
+                </div>
+
+                <div>
+                    <label
+                        htmlFor="contact_number"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Contact Number
+                    </label>
+                    <input
+                        type="tel"
+                        id="contact_number"
+                        name="contact_number"
+                        required
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+                        placeholder="Enter contact number"
+                    />
+                </div>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
+                <h4 className="text-sm font-medium text-amber-800 mb-2">
+                    Account Creation Notes:
+                </h4>
+                <ul className="text-xs text-amber-700 space-y-1">
+                    <li>• The mechanic will be created with role &apos;mechanic&apos;</li>
+                    <li>
+                        • They will receive a confirmation email to verify their
+                        account
+                    </li>
+                    <li>
+                        • The mechanic can log in immediately after creation
+                    </li>
+                    <li>
+                        • Profile picture will be uploaded to Supabase storage
+                    </li>
+                </ul>
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4">
                 <button
                     type="button"
                     onClick={() => window.history.back()}
-                    className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
                 >
                     Cancel
                 </button>
-            </div>
-
-            <div className="text-sm text-gray-600 bg-gray-50 p-4 rounded-md">
-                <h4 className="font-medium mb-2">Account Creation Notes:</h4>
-                <ul className="list-disc list-inside space-y-1">
-                    <li>
-                        The mechanic will be created with role
-                        &apos;mechanic&apos;
-                    </li>
-                    <li>
-                        They will receive a confirmation email to verify their
-                        account
-                    </li>
-                    <li>The mechanic can log in immediately after creation</li>
-                    <li>
-                        Profile picture will be uploaded to Supabase storage
-                    </li>
-                </ul>
+                <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50"
+                >
+                    {isLoading ? "Creating..." : "Create Mechanic"}
+                </button>
             </div>
         </form>
     );

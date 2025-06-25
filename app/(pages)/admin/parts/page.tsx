@@ -21,6 +21,8 @@ export default function PartsPage() {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [types, setTypes] = useState<Type[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const [viewImageUrl, setViewImageUrl] = useState("");
     const [editingPart, setEditingPart] = useState<Part | null>(null);
     const [formData, setFormData] = useState({
         name: "",
@@ -138,6 +140,11 @@ export default function PartsPage() {
         setIsModalOpen(true);
     };
 
+    const handleViewImage = (imageUrl: string) => {
+        setViewImageUrl(imageUrl);
+        setIsViewModalOpen(true);
+    };
+
     const resetForm = () => {
         setFormData({
             name: "",
@@ -155,36 +162,57 @@ export default function PartsPage() {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center min-h-screen">
-                Loading...
+            <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-inter">
+                <div className="flex justify-center items-center">
+                    <div className="text-lg text-gray-600">Loading...</div>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <Link
-                            href="/admin/dashboard"
-                            className="text-blue-600 hover:underline mb-2 inline-block"
-                        >
-                            ← Back to Dashboard
-                        </Link>
-                        <h1 className="text-3xl font-bold text-gray-900">
-                            Parts Management
-                        </h1>
-                    </div>
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-inter">
+            <div className="sm:mx-auto sm:w-full sm:max-w-7xl">
+                <div className="text-center mb-8">
+                    <Link
+                        href="/admin/dashboard"
+                        className="inline-flex items-center text-amber-600 hover:text-amber-500 mb-4"
                     >
-                        Add Part
-                    </button>
+                        <svg
+                            className="w-4 h-4 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 19l-7-7 7-7"
+                            />
+                        </svg>
+                        Back to Dashboard
+                    </Link>
+                    <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">
+                        Parts Management
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                        Manage your parts inventory and pricing
+                    </p>
                 </div>
+            </div>
 
-                <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-7xl">
+                <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+                    <div className="flex justify-end mb-6">
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="w-full sm:w-auto flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+                        >
+                            Add Part
+                        </button>
+                    </div>
+
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
@@ -193,7 +221,7 @@ export default function PartsPage() {
                                         Image
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Name
+                                        Part Details
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Vehicle
@@ -217,17 +245,30 @@ export default function PartsPage() {
                                     <tr key={part.id}>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             {part.url ? (
-                                                <div className="h-16 w-16 relative">
-                                                    <Image
-                                                        src={part.url}
-                                                        alt={
-                                                            part.name || "Part"
+                                                <div className="flex items-center space-x-2">
+                                                    <div className="h-16 w-16 relative">
+                                                        <Image
+                                                            src={part.url}
+                                                            alt={
+                                                                part.name ||
+                                                                "Part"
+                                                            }
+                                                            fill
+                                                            className="object-cover rounded-lg"
+                                                            sizes="64px"
+                                                            unoptimized={true}
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        onClick={() =>
+                                                            handleViewImage(
+                                                                part.url!
+                                                            )
                                                         }
-                                                        fill
-                                                        className="object-cover rounded-lg"
-                                                        sizes="64px"
-                                                        unoptimized={true} // Remove this if you configure Supabase in next.config.js
-                                                    />
+                                                        className="text-amber-600 hover:text-amber-500 text-sm"
+                                                    >
+                                                        View
+                                                    </button>
                                                 </div>
                                             ) : (
                                                 <div className="h-16 w-16 bg-gray-200 rounded-lg flex items-center justify-center">
@@ -270,27 +311,15 @@ export default function PartsPage() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {part.price
-                                                ? `${parseFloat(
+                                                ? `₱${parseFloat(
                                                       part.price.toString()
                                                   ).toFixed(2)}`
                                                 : "N/A"}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {part.url && (
-                                                <a
-                                                    href={part.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-600 hover:underline"
-                                                >
-                                                    View
-                                                </a>
-                                            )}
-                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <button
                                                 onClick={() => handleEdit(part)}
-                                                className="text-indigo-600 hover:text-indigo-900 mr-4"
+                                                className="text-amber-600 hover:text-amber-500 mr-4"
                                             >
                                                 Edit
                                             </button>
@@ -307,213 +336,252 @@ export default function PartsPage() {
                                 ))}
                             </tbody>
                         </table>
+
+                        {parts.length === 0 && (
+                            <div className="text-center py-8 text-gray-500">
+                                No parts found. Add your first part to get
+                                started!
+                            </div>
+                        )}
                     </div>
-
-                    {parts.length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
-                            No parts found. Add your first part to get started!
-                        </div>
-                    )}
                 </div>
+            </div>
 
-                {isModalOpen && (
-                    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-                        <div className="relative top-10 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
-                            <h2 className="text-lg font-bold mb-4">
-                                {editingPart ? "Edit Part" : "Add New Part"}
-                            </h2>
-                            <form onSubmit={handleSubmit}>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="mb-4 md:col-span-2">
-                                        <label className="block text-gray-700 text-sm font-bold mb-2">
-                                            Part Image
-                                        </label>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={(e) =>
-                                                setSelectedFile(
-                                                    e.target.files?.[0] || null
-                                                )
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500"
-                                        />
-                                        {formData.url && (
-                                            <div className="mt-2">
-                                                <div className="h-20 w-20 relative">
-                                                    <Image
-                                                        src={formData.url}
-                                                        alt="Current"
-                                                        fill
-                                                        className="object-cover rounded"
-                                                        sizes="80px"
-                                                        unoptimized={true} // Remove this if you configure Supabase in next.config.js
-                                                    />
-                                                </div>
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    Current image
-                                                </p>
-                                            </div>
-                                        )}
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-10 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+                        <h2 className="text-lg font-bold mb-4 text-gray-900">
+                            {editingPart ? "Edit Part" : "Add New Part"}
+                        </h2>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Part Image
+                                </label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) =>
+                                        setSelectedFile(
+                                            e.target.files?.[0] || null
+                                        )
+                                    }
+                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+                                />
+                                {formData.url && (
+                                    <div className="mt-2">
+                                        <div className="h-20 w-20 relative">
+                                            <Image
+                                                src={formData.url}
+                                                alt="Current"
+                                                fill
+                                                className="object-cover rounded"
+                                                sizes="80px"
+                                                unoptimized={true}
+                                            />
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Current image
+                                        </p>
                                     </div>
+                                )}
+                            </div>
 
-                                    <div className="mb-4">
-                                        <label className="block text-gray-700 text-sm font-bold mb-2">
-                                            Name
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={formData.name}
-                                            onChange={(e) =>
-                                                setFormData({
-                                                    ...formData,
-                                                    name: e.target.value,
-                                                })
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="mb-4">
-                                        <label className="block text-gray-700 text-sm font-bold mb-2">
-                                            Vehicle
-                                        </label>
-                                        <select
-                                            value={formData.vehicle_id}
-                                            onChange={(e) =>
-                                                setFormData({
-                                                    ...formData,
-                                                    vehicle_id: e.target.value,
-                                                })
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500"
-                                        >
-                                            <option value="">
-                                                Select Vehicle
-                                            </option>
-                                            {vehicles.map((vehicle) => (
-                                                <option
-                                                    key={vehicle.id}
-                                                    value={vehicle.id}
-                                                >
-                                                    {vehicle.name} (
-                                                    {vehicle.make}{" "}
-                                                    {vehicle.model}{" "}
-                                                    {vehicle.year})
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div className="mb-4">
-                                        <label className="block text-gray-700 text-sm font-bold mb-2">
-                                            Type
-                                        </label>
-                                        <select
-                                            value={formData.type_id}
-                                            onChange={(e) =>
-                                                setFormData({
-                                                    ...formData,
-                                                    type_id: e.target.value,
-                                                })
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500"
-                                        >
-                                            <option value="">
-                                                Select Type
-                                            </option>
-                                            {types.map((type) => (
-                                                <option
-                                                    key={type.id}
-                                                    value={type.id}
-                                                >
-                                                    {type.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div className="mb-4">
-                                        <label className="block text-gray-700 text-sm font-bold mb-2">
-                                            Stock
-                                        </label>
-                                        <input
-                                            type="number"
-                                            value={formData.stock}
-                                            onChange={(e) =>
-                                                setFormData({
-                                                    ...formData,
-                                                    stock: e.target.value,
-                                                })
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500"
-                                            min="0"
-                                        />
-                                    </div>
-
-                                    <div className="mb-4">
-                                        <label className="block text-gray-700 text-sm font-bold mb-2">
-                                            Price
-                                        </label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            value={formData.price}
-                                            onChange={(e) =>
-                                                setFormData({
-                                                    ...formData,
-                                                    price: e.target.value,
-                                                })
-                                            }
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500"
-                                            min="0"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="mb-4">
-                                    <label className="block text-gray-700 text-sm font-bold mb-2">
-                                        Description
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Part Name
                                     </label>
-                                    <textarea
-                                        value={formData.description}
+                                    <input
+                                        type="text"
+                                        value={formData.name}
                                         onChange={(e) =>
                                             setFormData({
                                                 ...formData,
-                                                description: e.target.value,
+                                                name: e.target.value,
                                             })
                                         }
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-purple-500"
-                                        rows={3}
+                                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+                                        placeholder="Enter part name"
+                                        required
                                     />
                                 </div>
 
-                                <div className="flex justify-end space-x-2">
-                                    <button
-                                        type="button"
-                                        onClick={resetForm}
-                                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Vehicle
+                                    </label>
+                                    <select
+                                        value={formData.vehicle_id}
+                                        onChange={(e) =>
+                                            setFormData({
+                                                ...formData,
+                                                vehicle_id: e.target.value,
+                                            })
+                                        }
+                                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
                                     >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={uploading}
-                                        className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50"
-                                    >
-                                        {uploading
-                                            ? "Uploading..."
-                                            : editingPart
-                                            ? "Update"
-                                            : "Add"}
-                                    </button>
+                                        <option value="">Select Vehicle</option>
+                                        {vehicles.map((vehicle) => (
+                                            <option
+                                                key={vehicle.id}
+                                                value={vehicle.id}
+                                            >
+                                                {vehicle.name} ({vehicle.make}{" "}
+                                                {vehicle.model} {vehicle.year})
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
-                            </form>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Type
+                                    </label>
+                                    <select
+                                        value={formData.type_id}
+                                        onChange={(e) =>
+                                            setFormData({
+                                                ...formData,
+                                                type_id: e.target.value,
+                                            })
+                                        }
+                                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+                                    >
+                                        <option value="">Select Type</option>
+                                        {types.map((type) => (
+                                            <option
+                                                key={type.id}
+                                                value={type.id}
+                                            >
+                                                {type.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Stock Quantity
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={formData.stock}
+                                        onChange={(e) =>
+                                            setFormData({
+                                                ...formData,
+                                                stock: e.target.value,
+                                            })
+                                        }
+                                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+                                        placeholder="Enter stock quantity"
+                                        min="0"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Price (₱)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={formData.price}
+                                        onChange={(e) =>
+                                            setFormData({
+                                                ...formData,
+                                                price: e.target.value,
+                                            })
+                                        }
+                                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+                                        placeholder="Enter price"
+                                        min="0"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Description
+                                </label>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={(e) =>
+                                        setFormData({
+                                            ...formData,
+                                            description: e.target.value,
+                                        })
+                                    }
+                                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+                                    placeholder="Enter part description"
+                                    rows={3}
+                                />
+                            </div>
+
+                            <div className="flex justify-end space-x-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={resetForm}
+                                    className="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={uploading}
+                                    className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50"
+                                >
+                                    {uploading
+                                        ? "Uploading..."
+                                        : editingPart
+                                        ? "Update"
+                                        : "Add"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {isViewModalOpen && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-75 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border max-w-2xl shadow-lg rounded-md bg-white">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-bold text-gray-900">
+                                Part Image
+                            </h2>
+                            <button
+                                onClick={() => setIsViewModalOpen(false)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <svg
+                                    className="w-6 h-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="relative w-full h-96">
+                            <Image
+                                src={viewImageUrl}
+                                alt="Part"
+                                fill
+                                className="object-contain rounded-lg"
+                                sizes="(max-width: 768px) 100vw, 50vw"
+                                unoptimized={true}
+                            />
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -36,43 +36,15 @@ export default async function MechanicsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">
-                        Mechanics Management
-                    </h1>
-                    <Link
-                        href="/admin/mechanics/create"
-                        className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2"
-                    >
-                        <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                            />
-                        </svg>
-                        Create New Mechanic
-                    </Link>
-                </div>
-
-                <MechanicsTable initialMechanics={mechanics || []} />
-
-                {/* Back to Dashboard */}
-                <div className="mt-8">
+        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-inter">
+            <div className="sm:mx-auto sm:w-full sm:max-w-7xl">
+                <div className="text-center mb-8">
                     <Link
                         href="/admin/dashboard"
-                        className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800"
+                        className="inline-flex items-center text-amber-600 hover:text-amber-500 mb-4"
                     >
                         <svg
-                            className="w-4 h-4"
+                            className="w-4 h-4 mr-2"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -81,11 +53,32 @@ export default async function MechanicsPage() {
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                                d="M15 19l-7-7 7-7"
                             />
                         </svg>
                         Back to Dashboard
                     </Link>
+                    <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">
+                        Mechanics Management
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                        Manage mechanic accounts and their information
+                    </p>
+                </div>
+            </div>
+
+            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-7xl">
+                <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+                    <div className="flex justify-end mb-6">
+                        <Link
+                            href="/admin/mechanics/create"
+                            className="w-full sm:w-auto flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+                        >
+                            Add Mechanic
+                        </Link>
+                    </div>
+
+                    <MechanicsTable initialMechanics={mechanics || []} />
                 </div>
             </div>
         </div>
