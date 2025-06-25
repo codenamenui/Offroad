@@ -1,3 +1,4 @@
+// SearchPanel.tsx - Updated for smaller layout
 import React, { useMemo, useState, useRef } from "react";
 import PartItem from "./part-item";
 import { useSearch } from "../../../../components/header";
@@ -69,7 +70,7 @@ const SearchPanel = ({
 
     const scrollLeft = () => {
         if (containerRef.current) {
-            const newPosition = Math.max(0, scrollPosition - 300);
+            const newPosition = Math.max(0, scrollPosition - 250);
             setScrollPosition(newPosition);
             containerRef.current.scrollTo({
                 left: newPosition,
@@ -83,7 +84,7 @@ const SearchPanel = ({
             const maxScroll =
                 containerRef.current.scrollWidth -
                 containerRef.current.clientWidth;
-            const newPosition = Math.min(maxScroll, scrollPosition + 300);
+            const newPosition = Math.min(maxScroll, scrollPosition + 250);
             setScrollPosition(newPosition);
             containerRef.current.scrollTo({
                 left: newPosition,
@@ -123,28 +124,28 @@ const SearchPanel = ({
 
     if (filteredParts.length === 0) {
         return (
-            <div className="h-full flex items-center justify-center p-4">
-                <p className="text-gray-500">No parts found</p>
+            <div className="h-full flex items-center justify-center p-3">
+                <p className="text-gray-500 text-sm">No parts found</p>
             </div>
         );
     }
 
     return (
-        <div className="h-full flex flex-col p-4 relative">
-            <div className="absolute top-4 right-4 flex gap-2 z-10">
+        <div className="h-full flex flex-col p-3 relative">
+            <div className="absolute top-2 right-2 flex gap-1 z-10">
                 <button
                     onClick={scrollLeft}
                     disabled={!canScrollLeft}
-                    className="p-2 rounded-full bg-white shadow-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border"
+                    className="p-1.5 rounded-full bg-white shadow-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border"
                 >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-3 h-3" />
                 </button>
                 <button
                     onClick={scrollRight}
                     disabled={!canScrollRight}
-                    className="p-2 rounded-full bg-white shadow-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border"
+                    className="p-1.5 rounded-full bg-white shadow-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border"
                 >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-3 h-3" />
                 </button>
             </div>
 
@@ -159,7 +160,7 @@ const SearchPanel = ({
                 onMouseLeave={handleMouseLeave}
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
-                <div className="flex gap-4 h-full pb-4">
+                <div className="flex gap-2 h-full pb-2">
                     {filteredParts.map((part) => {
                         const currentQuantity =
                             customizations?.parts?.find(
@@ -181,7 +182,7 @@ const SearchPanel = ({
                         }
 
                         return (
-                            <div key={part.id} className="flex-shrink-0 w-64">
+                            <div key={part.id} className="flex-shrink-0 w-40">
                                 <PartItem
                                     part={part}
                                     onAddPart={() => handleAddPart(part)}

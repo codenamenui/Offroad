@@ -1,3 +1,4 @@
+// PartItem.tsx - Compact version
 import Image from "next/image";
 import { Plus } from "lucide-react";
 
@@ -20,7 +21,7 @@ const PartItem = ({
         return `₱${parseFloat(price).toFixed(2)}`;
     };
 
-    const truncateName = (name, maxLength = 20) => {
+    const truncateName = (name, maxLength = 16) => {
         return name.length > maxLength
             ? `${name.substring(0, maxLength)}...`
             : name;
@@ -29,8 +30,8 @@ const PartItem = ({
     return (
         <div
             className={`
-            bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 
-            p-4 cursor-pointer border border-gray-200 h-full flex flex-col select-none
+            bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 
+            p-2 cursor-pointer border border-gray-200 h-full flex flex-col select-none
             ${
                 isDisabled
                     ? "opacity-50 cursor-not-allowed"
@@ -40,7 +41,7 @@ const PartItem = ({
             style={{ userSelect: "none" }}
             onClick={() => !isDisabled && onAddPart(part)}
         >
-            <div className="relative h-32 mb-3 bg-gray-50 rounded-md overflow-hidden">
+            <div className="relative h-16 mb-2 bg-gray-50 rounded-md overflow-hidden">
                 <Image
                     src={part.url}
                     alt={part.name}
@@ -51,50 +52,50 @@ const PartItem = ({
 
             <div
                 className={`
-                inline-block px-2 py-1 rounded-full text-xs font-medium text-white mb-2 w-fit
+                inline-block px-1.5 py-0.5 rounded-full text-xs font-medium text-white mb-1 w-fit
                 ${getTypeColor()}
             `}
             >
                 {part.types?.name || "General"}
             </div>
 
-            <div className="flex items-start justify-between mb-2">
-                <h4 className="font-semibold text-gray-900 text-sm flex-1 pr-2">
+            <div className="flex items-start justify-between mb-1">
+                <h4 className="font-semibold text-gray-900 text-xs flex-1 pr-1 leading-tight">
                     {truncateName(part.name)}
                 </h4>
                 {!isDisabled && (
                     <button
-                        className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-full p-1 transition-colors"
+                        className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-full p-0.5 transition-colors"
                         onClick={(e) => {
                             e.stopPropagation();
                             onAddPart(part);
                         }}
                     >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-3 h-3" />
                     </button>
                 )}
             </div>
 
-            <p className="text-gray-600 text-xs mb-3 flex-1 leading-relaxed">
-                {part.description.length > 80
-                    ? `${part.description.substring(0, 80)}...`
+            <p className="text-gray-600 text-xs mb-2 flex-1 leading-tight">
+                {part.description.length > 40
+                    ? `${part.description.substring(0, 40)}...`
                     : part.description}
             </p>
 
             <div className="flex justify-between items-end mt-auto">
-                <div className="text-lg font-bold text-gray-900">
+                <div className="text-sm font-bold text-gray-900">
                     {formatPrice(part.price)}
                 </div>
                 <div
-                    className={`text-sm ${
+                    className={`text-xs ${
                         displayStock > 0 ? "text-green-600" : "text-red-500"
                     }`}
                 >
-                    {displayStock} in stock
+                    {displayStock}
                 </div>
             </div>
         </div>
     );
 };
 
-export default PartItem;
+export default PartItem;    

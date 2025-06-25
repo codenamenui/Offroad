@@ -1,3 +1,4 @@
+// EditorPanel.tsx - Updated layout
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -79,41 +80,45 @@ const EditorPanel = ({
 
     return (
         <SearchProvider types={types}>
-            <HeaderPanel user={user} search={true} />
-            <div className="flex h-screen">
-                <div className="w-[30%] border-r-2 border-gray-300">
-                    <VehiclePanel
-                        vehicles={vehicles}
-                        selectedVehicleId={selectedVehicleId}
-                        setSelectedVehicleId={setSelectedVehicleId}
-                        customizations={customizations}
-                        setCustomizations={setCustomizations}
-                        mechanics={mechanics}
-                        isEditMode={isEditMode}
-                        setIsEditMode={setIsEditMode}
-                        editBookingGroupId={editBookingGroupId}
-                        editBookingData={editBookingData}
-                        parts={parts}
-                    />
-                </div>
-                <div className="flex flex-col w-[70%] h-[90%]">
-                    <div className="flex-1 border-b-2 border-gray-300 flex items-center justify-center bg-gray-50">
-                        <Image
-                            src={selectedVehicle?.url}
-                            alt={selectedVehicle?.name}
-                            width="300"
-                            height="200"
-                            className="max-w-full max-h-full object-contain"
-                        />
-                    </div>
-                    <div className="h-80 overflow-hidden">
-                        <SearchPanel
+            <div className="h-screen flex flex-col overflow-hidden">
+                <HeaderPanel user={user} search={true} />
+                <div className="flex flex-1 min-h-0">
+                    <div className="w-[30%] border-r-2 border-gray-300 overflow-auto">
+                        <VehiclePanel
+                            vehicles={vehicles}
                             selectedVehicleId={selectedVehicleId}
-                            parts={parts}
+                            setSelectedVehicleId={setSelectedVehicleId}
                             customizations={customizations}
                             setCustomizations={setCustomizations}
+                            mechanics={mechanics}
                             isEditMode={isEditMode}
+                            setIsEditMode={setIsEditMode}
+                            editBookingGroupId={editBookingGroupId}
+                            editBookingData={editBookingData}
+                            parts={parts}
                         />
+                    </div>
+                    <div className="flex flex-col w-[70%] min-h-0">
+                        {/* Bigger car display area */}
+                        <div className="flex-1 border-b-2 border-gray-300 flex items-center justify-center bg-gray-50 min-h-0">
+                            <Image
+                                src={selectedVehicle?.url}
+                                alt={selectedVehicle?.name}
+                                width="750"
+                                height="525"
+                                className="max-w-full max-h-full object-contain"
+                            />
+                        </div>
+                        {/* Smaller search panel */}
+                        <div className="h-48 overflow-auto">
+                            <SearchPanel
+                                selectedVehicleId={selectedVehicleId}
+                                parts={parts}
+                                customizations={customizations}
+                                setCustomizations={setCustomizations}
+                                isEditMode={isEditMode}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
