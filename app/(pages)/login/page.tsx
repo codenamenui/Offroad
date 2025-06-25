@@ -38,7 +38,7 @@ const LoginPage = () => {
             console.log(user);
             if (user == null) {
                 setError(result.error);
-                throw result.error;
+                return;
             }
             const { data } = await supabase
                 .from("user_profiles")
