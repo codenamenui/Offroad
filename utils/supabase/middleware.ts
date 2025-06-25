@@ -94,8 +94,10 @@ export async function updateSession(request: NextRequest) {
                     const url = request.nextUrl.clone();
                     if (userRole == "user") {
                         url.pathname = `/user/editor`;
-                    } else {
+                    } else if (userRole == "admin") {
                         url.pathname = `/${userRole}/dashboard`;
+                    } else {
+                        url.pathname = `/mechanic/bookings`;
                     }
                     return NextResponse.redirect(url);
                 }
