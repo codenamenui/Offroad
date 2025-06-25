@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
@@ -14,11 +14,7 @@ const CompleteProfileForm = () => {
     const router = useRouter();
     const [supabase] = useState(() => createClient());
 
-    useEffect(() => {
-        fetchUserProfile();
-    }, []);
-
-    const fetchUserProfile = async () => {
+    const fetchUserProfile = useCallback(async () => {
         try {
             const {
                 data: { user },
@@ -62,7 +58,11 @@ const CompleteProfileForm = () => {
         } finally {
             setInitialLoading(false);
         }
-    };
+    }, [supabase]);
+
+    useEffect(() => {
+        fetchUserProfile();
+    }, [fetchUserProfile]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {

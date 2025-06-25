@@ -182,7 +182,7 @@ export default function BookingRequestsPanel({
     };
 
     return (
-        <SearchProvider types={undefined}>
+        <SearchProvider types={[]}>
             <div className="p-6 max-w-7xl mx-auto">
                 <HeaderPanel
                     user={user}

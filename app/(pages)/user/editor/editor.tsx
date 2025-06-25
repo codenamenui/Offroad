@@ -57,7 +57,7 @@ const EditorPanel = ({
     );
 
     useEffect(() => {
-        if (editBooking && editBooking.length > 0) {
+        if (editBooking && editBooking.length > 0 && !isEditMode) {
             setIsEditMode(true);
             setEditBookingGroupId(editBooking[0].booking_group_id);
 
@@ -73,7 +73,7 @@ const EditorPanel = ({
                 parts: editCustomizations,
             });
         }
-    }, [editBooking]);
+    }, [editBooking, isEditMode]);
 
     const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
 

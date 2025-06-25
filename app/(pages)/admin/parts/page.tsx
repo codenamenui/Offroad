@@ -1,7 +1,7 @@
 // app/admin/parts/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Tables } from "@/data/database.types";
 import Link from "next/link";
@@ -37,20 +37,16 @@ export default function PartsPage() {
 
     const supabase = createClient();
 
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         const [partsData, vehiclesData, typesData] = await Promise.all([
             supabase
                 .from("parts")
                 .select(
                     `
-          *,
-          vehicles (id, name, make, model, year),
-          types (id, name)
-        `
+              *,
+              vehicles (id, name, make, model, year),
+              types (id, name)
+            `
                 )
                 .order("id", { ascending: false }),
             supabase.from("vehicles").select("*").order("name"),
@@ -61,7 +57,11 @@ export default function PartsPage() {
         setVehicles(vehiclesData.data || []);
         setTypes(typesData.data || []);
         setLoading(false);
-    };
+    }, [supabase]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

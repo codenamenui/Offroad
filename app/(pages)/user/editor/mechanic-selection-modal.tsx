@@ -21,47 +21,48 @@ const MechanicSelectionModal = ({
         return d.toISOString().split("T")[0];
     }, []);
 
-    const checkMechanicAvailability = useCallback(async () => {
-        if (!isOpen || !selectedDate || !mechanics.length) return;
-
-        const supabase = await createClient();
-        const availability = {};
-        const selectedDateStr = normalizeDate(selectedDate);
-
-        for (const mechanic of mechanics) {
-            const { data: unavailableDays } = await supabase
-                .from("mechanic_unavailable_days")
-                .select("*")
-                .eq("mechanic_id", mechanic.id)
-                .eq("date", selectedDateStr);
-
-            const { data: allUnavailableDays } = await supabase
-                .from("mechanic_unavailable_days")
-                .select("date, reason")
-                .eq("mechanic_id", mechanic.id)
-                .gte("date", new Date().toISOString().split("T")[0])
-                .order("date", { ascending: true })
-                .limit(10);
-
-            const isUnavailable = unavailableDays && unavailableDays.length > 0;
-            const unavailableReason = isUnavailable
-                ? unavailableDays[0].reason
-                : null;
-
-            availability[mechanic.id] = {
-                isAvailable: !isUnavailable,
-                isUnavailable: isUnavailable,
-                unavailableReason: unavailableReason,
-                upcomingUnavailableDays: allUnavailableDays || [],
-            };
-        }
-
-        setMechanicAvailability(availability);
-    }, [isOpen, selectedDate, mechanics, normalizeDate]);
-
     useEffect(() => {
+        const checkMechanicAvailability = async () => {
+            if (!isOpen || !selectedDate || !mechanics.length) return;
+
+            const supabase = await createClient();
+            const availability = {};
+            const selectedDateStr = normalizeDate(selectedDate);
+
+            for (const mechanic of mechanics) {
+                const { data: unavailableDays } = await supabase
+                    .from("mechanic_unavailable_days")
+                    .select("*")
+                    .eq("mechanic_id", mechanic.id)
+                    .eq("date", selectedDateStr);
+
+                const { data: allUnavailableDays } = await supabase
+                    .from("mechanic_unavailable_days")
+                    .select("date, reason")
+                    .eq("mechanic_id", mechanic.id)
+                    .gte("date", new Date().toISOString().split("T")[0])
+                    .order("date", { ascending: true })
+                    .limit(10);
+
+                const isUnavailable =
+                    unavailableDays && unavailableDays.length > 0;
+                const unavailableReason = isUnavailable
+                    ? unavailableDays[0].reason
+                    : null;
+
+                availability[mechanic.id] = {
+                    isAvailable: !isUnavailable,
+                    isUnavailable: isUnavailable,
+                    unavailableReason: unavailableReason,
+                    upcomingUnavailableDays: allUnavailableDays || [],
+                };
+            }
+
+            setMechanicAvailability(availability);
+        };
+
         checkMechanicAvailability();
-    }, [checkMechanicAvailability]);
+    }, [isOpen, mechanics, normalizeDate, selectedDate]);
 
     const handleNext = () => {
         if (bookingData.mechanic_id) {

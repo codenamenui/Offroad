@@ -1,7 +1,7 @@
 // app/admin/types/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Tables } from "@/data/database.types";
 import Link from "next/link";
@@ -19,18 +19,18 @@ export default function TypesPage() {
 
     const supabase = createClient();
 
-    useEffect(() => {
-        fetchTypes();
-    }, []);
-
-    const fetchTypes = async () => {
+    const fetchTypes = useCallback(async () => {
         const { data } = await supabase
             .from("types")
             .select("*")
             .order("id", { ascending: false });
         setTypes(data || []);
         setLoading(false);
-    };
+    }, [supabase]); // Include supabase to satisfy ESLint
+
+    useEffect(() => {
+        fetchTypes();
+    }, [fetchTypes]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

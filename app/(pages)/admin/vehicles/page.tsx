@@ -1,7 +1,7 @@
 // app/admin/vehicles/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Tables } from "@/data/database.types";
 import Link from "next/link";
@@ -26,18 +26,18 @@ export default function VehiclesPage() {
 
     const supabase = createClient();
 
-    useEffect(() => {
-        fetchVehicles();
-    }, []);
-
-    const fetchVehicles = async () => {
+    const fetchVehicles = useCallback(async () => {
         const { data } = await supabase
             .from("vehicles")
             .select("*")
             .order("id", { ascending: false });
         setVehicles(data || []);
         setLoading(false);
-    };
+    }, [supabase]);
+
+    useEffect(() => {
+        fetchVehicles();
+    }, [fetchVehicles]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
