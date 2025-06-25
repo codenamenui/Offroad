@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import HeaderPanel, { SearchProvider } from "@/components/header";
 
@@ -24,52 +24,56 @@ export default function MechanicLeaveCalendar() {
 
     const supabase = createClient();
 
-    useEffect(() => {
-        async function fetchMechanicAndUnavailableDays() {
+    const fetchUnavailableDays = useCallback(
+        async (mechId: string) => {
             try {
-                const {
-                    data: { user },
-                } = await supabase.auth.getUser();
+                const { data, error } = await supabase
+                    .from("mechanic_unavailable_days")
+                    .select("*")
+                    .eq("mechanic_id", mechId);
 
-                if (!user) {
-                    setLoading(false);
-                    return;
-                }
-
-                const { data: mechanic } = await supabase
-                    .from("mechanics")
-                    .select("id, name")
-                    .eq("profile_id", user.id)
-                    .single();
-
-                if (mechanic) {
-                    setMechanicId(mechanic.id);
-                    setName(mechanic.name);
-                    await fetchUnavailableDays(mechanic.id);
-                }
+                if (error) throw error;
+                setUnavailableDays(data || []);
             } catch (error) {
-                console.error("Error fetching mechanic data:", error);
-            } finally {
-                setLoading(false);
+                console.error("Error fetching unavailable days:", error);
             }
-        }
+        },
+        [supabase]
+    );
 
-        fetchMechanicAndUnavailableDays();
-    }, []);
-
-    async function fetchUnavailableDays(mechId: string) {
+    const fetchMechanicAndUnavailableDays = useCallback(async () => {
         try {
-            const { data, error } = await supabase
-                .from("mechanic_unavailable_days")
-                .select("*")
-                .eq("mechanic_id", mechId);
+            setLoading(true);
+            const {
+                data: { user },
+            } = await supabase.auth.getUser();
 
-            if (error) throw error;
-            setUnavailableDays(data || []);
+            if (!user) {
+                setLoading(false);
+                return;
+            }
+
+            const { data: mechanic } = await supabase
+                .from("mechanics")
+                .select("id, name")
+                .eq("profile_id", user.id)
+                .single();
+
+            if (mechanic) {
+                setMechanicId(mechanic.id);
+                setName(mechanic.name);
+                await fetchUnavailableDays(mechanic.id);
+            }
         } catch (error) {
-            console.error("Error fetching unavailable days:", error);
+            console.error("Error fetching mechanic data:", error);
+        } finally {
+            setLoading(false);
         }
-    }
+    }, [supabase, fetchUnavailableDays]);
+
+    useEffect(() => {
+        fetchMechanicAndUnavailableDays();
+    }, [fetchMechanicAndUnavailableDays]);
 
     const getDaysInMonth = (date: Date) => {
         const year = date.getFullYear();
