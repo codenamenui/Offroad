@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { User, ChevronDown } from "lucide-react";
 
 const MechanicSelectionModal = ({
     isOpen,
@@ -14,6 +15,7 @@ const MechanicSelectionModal = ({
     const [hoveredMechanic, setHoveredMechanic] = useState(null);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [mechanicAvailability, setMechanicAvailability] = useState({});
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const normalizeDate = useCallback((date) => {
         if (!date) return null;
@@ -94,105 +96,134 @@ const MechanicSelectionModal = ({
             .join("\n");
     };
 
+    const selectedMechanic = mechanics.find(m => m.id === bookingData.mechanic_id);
+
+    const handleMechanicSelect = (mechanic) => {
+        const availability = mechanicAvailability[mechanic.id];
+        if (availability?.isAvailable) {
+            setBookingData((prev) => ({
+                ...prev,
+                mechanic_id: mechanic.id,
+            }));
+            setIsDropdownOpen(false);
+            // Clear the tooltip when selecting a mechanic
+            setHoveredMechanic(null);
+        }
+    };
+
+    // Clear tooltip when dropdown closes
+    useEffect(() => {
+        if (!isDropdownOpen) {
+            setHoveredMechanic(null);
+        }
+    }, [isDropdownOpen]);
+
     if (!isOpen) return null;
 
     return (
         <>
             <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                <div className="bg-white p-5 rounded-lg min-w-96 relative">
-                    <h3 className="mb-5">
-                        Select Mechanic for{" "}
-                        {new Date(selectedDate).toLocaleDateString()}
-                    </h3>
-                    <div className="mb-5">
-                        {mechanics.map((mechanic) => {
-                            const availability =
-                                mechanicAvailability[mechanic.id];
-                            const isAvailable = availability?.isAvailable;
-                            const isUnavailable = availability?.isUnavailable;
-
-                            return (
-                                <div
-                                    key={mechanic.id}
-                                    className={`p-2.5 my-1 border border-gray-300 rounded ${
-                                        bookingData.mechanic_id === mechanic.id
-                                            ? "bg-blue-50"
-                                            : "bg-white"
-                                    } ${
-                                        isAvailable
-                                            ? "cursor-pointer opacity-100"
-                                            : "cursor-not-allowed opacity-60"
-                                    }`}
-                                    onClick={() => {
-                                        if (isAvailable) {
-                                            setBookingData((prev) => ({
-                                                ...prev,
-                                                mechanic_id: mechanic.id,
-                                            }));
-                                        }
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        setHoveredMechanic(mechanic.id);
-                                        setMousePosition({
-                                            x: e.clientX,
-                                            y: e.clientY,
-                                        });
-                                    }}
-                                    onMouseMove={(e) => {
-                                        setMousePosition({
-                                            x: e.clientX,
-                                            y: e.clientY,
-                                        });
-                                    }}
-                                    onMouseLeave={() =>
-                                        setHoveredMechanic(null)
-                                    }
-                                >
-                                    <div className="flex justify-between items-center">
-                                        <span className="font-bold">
-                                            {mechanic.name}
-                                        </span>
-                                        <span
-                                            className={`text-xs font-bold ${
-                                                isAvailable
-                                                    ? "text-green-600"
-                                                    : "text-red-600"
-                                            }`}
-                                        >
-                                            {isUnavailable
-                                                ? `Unavailable (${
-                                                      availability?.unavailableReason ||
-                                                      "Day off"
-                                                  })`
-                                                : "Available"}
-                                        </span>
-                                    </div>
+                <div className="bg-white rounded-lg w-96 p-6">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                        Choose your mechanic
+                    </h2>
+                    
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Mechanics
+                        </label>
+                        
+                        <div className="relative">
+                            <button
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                className="w-full flex items-center justify-between px-3 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <User size={18} className="text-gray-400" />
+                                    <span className="text-gray-900">
+                                        {selectedMechanic ? selectedMechanic.name : "Select a mechanic"}
+                                    </span>
                                 </div>
-                            );
-                        })}
+                                <ChevronDown 
+                                    size={18} 
+                                    className={`text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} 
+                                />
+                            </button>
+
+                            {isDropdownOpen && (
+                                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                                    {mechanics.map((mechanic) => {
+                                        const availability = mechanicAvailability[mechanic.id];
+                                        const isAvailable = availability?.isAvailable;
+                                        const isUnavailable = availability?.isUnavailable;
+
+                                        return (
+                                            <div
+                                                key={mechanic.id}
+                                                className={`px-3 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 ${
+                                                    !isAvailable ? "opacity-60 cursor-not-allowed" : ""
+                                                } ${
+                                                    bookingData.mechanic_id === mechanic.id ? "bg-orange-50" : ""
+                                                }`}
+                                                onClick={() => handleMechanicSelect(mechanic)}
+                                                onMouseEnter={(e) => {
+                                                    setHoveredMechanic(mechanic.id);
+                                                    setMousePosition({
+                                                        x: e.clientX,
+                                                        y: e.clientY,
+                                                    });
+                                                }}
+                                                onMouseMove={(e) => {
+                                                    setMousePosition({
+                                                        x: e.clientX,
+                                                        y: e.clientY,
+                                                    });
+                                                }}
+                                                onMouseLeave={() => setHoveredMechanic(null)}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center space-x-2">
+                                                        <User size={16} className="text-gray-400" />
+                                                        <span className="font-medium text-gray-900">
+                                                            {mechanic.name}
+                                                        </span>
+                                                    </div>
+                                                    <span
+                                                        className={`text-xs font-medium px-2 py-1 rounded-full ${
+                                                            isAvailable
+                                                                ? "bg-green-100 text-green-700"
+                                                                : "bg-red-100 text-red-700"
+                                                        }`}
+                                                    >
+                                                        {isUnavailable
+                                                            ? "Unavailable"
+                                                            : "Available"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="flex gap-2.5 justify-end">
-                        <button
-                            onClick={handleBack}
-                            className="px-4 py-2 bg-gray-500 text-white border-none rounded cursor-pointer"
-                        >
-                            Back
-                        </button>
+                    <div className="space-y-3">
                         <button
                             onClick={handleNext}
                             disabled={!bookingData.mechanic_id}
-                            className={`px-4 py-2 text-white border-none rounded ${
+                            className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
                                 bookingData.mechanic_id
-                                    ? "bg-green-500 cursor-pointer"
-                                    : "bg-gray-300 cursor-not-allowed"
+                                    ? "bg-orange-500 hover:bg-orange-600 text-white"
+                                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
                             }`}
                         >
-                            Next
+                            Book
                         </button>
+                        
                         <button
                             onClick={handleClose}
-                            className="px-4 py-2 bg-red-500 text-white border-none rounded cursor-pointer"
+                            className="w-full py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                         >
                             Cancel
                         </button>
@@ -200,15 +231,16 @@ const MechanicSelectionModal = ({
                 </div>
             </div>
 
+            {/* Tooltip */}
             {hoveredMechanic && mechanicAvailability[hoveredMechanic] && (
                 <div
-                    className="fixed bg-gray-800 text-white p-2.5 rounded text-xs whitespace-pre-line shadow-lg pointer-events-none z-[9999]"
+                    className="fixed bg-gray-800 text-white p-3 rounded-lg text-xs whitespace-pre-line shadow-lg pointer-events-none z-[9999] max-w-xs"
                     style={{
                         left: `${mousePosition.x + 10}px`,
                         top: `${mousePosition.y + 10}px`,
                     }}
                 >
-                    <div>
+                    <div className="font-medium mb-1">
                         <strong>Status:</strong>{" "}
                         {mechanicAvailability[hoveredMechanic]?.isUnavailable
                             ? `Unavailable (${
@@ -217,7 +249,8 @@ const MechanicSelectionModal = ({
                               })`
                             : "Available"}
                     </div>
-                    <div className="text-[11px] mt-1">
+                    <div className="text-[11px] text-gray-300">
+                        <strong>Upcoming unavailable days:</strong><br/>
                         {formatUnavailableDays(
                             mechanicAvailability[hoveredMechanic]
                                 .upcomingUnavailableDays
