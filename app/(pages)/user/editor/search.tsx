@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import PartItem from "./part-item";
-import { useSearch } from "./header";
+import { useSearch } from "../../../../components/header";
 
 const SearchPanel = ({
     selectedVehicleId,

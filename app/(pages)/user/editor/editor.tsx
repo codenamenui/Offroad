@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import VehiclePanel from "./vehicle";
 import SearchPanel from "./search";
-import HeaderPanel, { SearchProvider } from "./header";
+import HeaderPanel, { SearchProvider } from "../../../../components/header";
 import { Tables } from "@/data/database.types";
 import Image from "next/image";
 

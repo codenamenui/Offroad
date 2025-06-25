@@ -7,10 +7,10 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import FilterPopup from "./filter-popup";
+import FilterPopup from "../app/(pages)/user/editor/filter-popup";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
-import ProfilePopup from "./profile-popup";
+import ProfilePopup from "../app/(pages)/user/editor/profile-popup";
 
 const SearchContext = createContext(null);
 

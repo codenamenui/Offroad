@@ -54,7 +54,13 @@ export async function updateSession(request: NextRequest) {
     const protectedRoutes = {
         user: ["/user/editor", "/editor", "/bookings"],
         mechanic: ["/mechanic/dashboard", "/schedule", "/mechanic"],
-        admin: ["/admin/mechanic", "/admin", "/manage"],
+        admin: [
+            "/admin/parts",
+            "/admin/vehicles",
+            "/admin/types",
+            "/admin",
+            "/manage",
+        ],
     };
 
     // Check if current path is public

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Tables } from "@/data/database.types";
 import BookingGroupModal from "./booking-group-modal";
 import Image from "next/image";
-import HeaderPanel, { SearchProvider } from "../editor/header";
+import HeaderPanel, { SearchProvider } from "../../../../components/header";
 
 type User = Tables<"users">;
 type Booking = Tables<"bookings">;

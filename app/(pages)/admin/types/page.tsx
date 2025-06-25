@@ -1,140 +1,206 @@
 // app/admin/types/page.tsx
-import { createClient } from "@/utils/supabase/server";
+"use client";
+
+import { useState, useEffect } from "react";
+import { createClient } from "@/utils/supabase/client";
 import { Tables } from "@/data/database.types";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import Link from "next/link";
 
 type Type = Tables<"types">;
 
-async function getTypes(): Promise<Type[]> {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-        .from("types")
-        .select("*")
-        .order("id", { ascending: true });
+export default function TypesPage() {
+    const [types, setTypes] = useState<Type[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingType, setEditingType] = useState<Type | null>(null);
+    const [formData, setFormData] = useState({
+        name: "",
+    });
+    const [loading, setLoading] = useState(true);
 
-    if (error) throw error;
-    return data || [];
-}
+    const supabase = createClient();
 
-async function createType(formData: FormData) {
-    "use server";
+    useEffect(() => {
+        fetchTypes();
+    }, []);
 
-    const supabase = await createClient();
-    const name = formData.get("name") as string;
+    const fetchTypes = async () => {
+        const { data } = await supabase
+            .from("types")
+            .select("*")
+            .order("id", { ascending: false });
+        setTypes(data || []);
+        setLoading(false);
+    };
 
-    const { error } = await supabase.from("types").insert([{ name }]);
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
 
-    if (error) throw error;
-    revalidatePath("/admin/types");
-}
+        if (editingType) {
+            await supabase
+                .from("types")
+                .update(formData)
+                .eq("id", editingType.id);
+        } else {
+            await supabase.from("types").insert([formData]);
+        }
 
-async function updateType(formData: FormData) {
-    "use server";
+        fetchTypes();
+        resetForm();
+    };
 
-    const supabase = await createClient();
-    const id = parseInt(formData.get("id") as string);
-    const name = formData.get("name") as string;
+    const handleDelete = async (id: number) => {
+        if (
+            confirm(
+                "Are you sure you want to delete this type? This will also delete all associated parts."
+            )
+        ) {
+            await supabase.from("types").delete().eq("id", id);
+            fetchTypes();
+        }
+    };
 
-    const { error } = await supabase
-        .from("types")
-        .update({ name })
-        .eq("id", id);
+    const handleEdit = (type: Type) => {
+        setEditingType(type);
+        setFormData({
+            name: type.name || "",
+        });
+        setIsModalOpen(true);
+    };
 
-    if (error) throw error;
-    revalidatePath("/admin/types");
-    redirect("/admin/types");
-}
+    const resetForm = () => {
+        setFormData({ name: "" });
+        setEditingType(null);
+        setIsModalOpen(false);
+    };
 
-async function deleteType(formData: FormData) {
-    "use server";
-
-    const supabase = await createClient();
-    const id = parseInt(formData.get("id") as string);
-
-    const { error } = await supabase.from("types").delete().eq("id", id);
-
-    if (error) throw error;
-    revalidatePath("/admin/types");
-}
-
-export default async function TypesPage({
-    searchParams,
-}: {
-    searchParams: { edit?: string };
-}) {
-    const types = await getTypes();
-    const editId = searchParams.edit ? parseInt(searchParams.edit) : null;
-    const editType = editId ? types.find((t) => t.id === editId) : null;
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen">
+                Loading...
+            </div>
+        );
+    }
 
     return (
-        <div>
-            <h1>Types Management</h1>
-
-            <h2>Add New Type</h2>
-            <form action={createType}>
-                <input name="name" placeholder="Type Name" required />
-                <button type="submit">Add Type</button>
-            </form>
-
-            {editType && (
-                <div>
-                    <h2>Edit Type</h2>
-                    <form action={updateType}>
-                        <input type="hidden" name="id" value={editType.id} />
-                        <input
-                            name="name"
-                            defaultValue={editType.name || ""}
-                            placeholder="Type Name"
-                            required
-                        />
-                        <button type="submit">Update Type</button>
-                    </form>
+        <div className="min-h-screen bg-gray-50 p-8">
+            <div className="max-w-7xl mx-auto">
+                <div className="flex justify-between items-center mb-8">
+                    <div>
+                        <Link
+                            href="/admin"
+                            className="text-blue-600 hover:underline mb-2 inline-block"
+                        >
+                            ← Back to Dashboard
+                        </Link>
+                        <h1 className="text-3xl font-bold text-gray-900">
+                            Types Management
+                        </h1>
+                    </div>
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                    >
+                        Add Type
+                    </button>
                 </div>
-            )}
 
-            <h2>Types List</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {types.map((type) => (
-                        <tr key={type.id}>
-                            <td>{type.id}</td>
-                            <td>{type.name}</td>
-                            <td>
-                                <a href={`/admin/types?edit=${type.id}`}>
-                                    Edit
-                                </a>
-                                <form
-                                    action={deleteType}
-                                    style={{ display: "inline" }}
-                                >
+                <div className="bg-white rounded-lg shadow overflow-hidden">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    ID
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Name
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {types.map((type) => (
+                                <tr key={type.id}>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {type.id}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {type.name}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button
+                                            onClick={() => handleEdit(type)}
+                                            className="text-indigo-600 hover:text-indigo-900 mr-4"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                handleDelete(type.id)
+                                            }
+                                            className="text-red-600 hover:text-red-900"
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    {types.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                            No types found. Add your first type to get started!
+                        </div>
+                    )}
+                </div>
+
+                {isModalOpen && (
+                    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                        <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                            <h2 className="text-lg font-bold mb-4">
+                                {editingType ? "Edit Type" : "Add New Type"}
+                            </h2>
+                            <form onSubmit={handleSubmit}>
+                                <div className="mb-4">
+                                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                                        Name
+                                    </label>
                                     <input
-                                        type="hidden"
-                                        name="id"
-                                        value={type.id}
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={(e) =>
+                                            setFormData({
+                                                ...formData,
+                                                name: e.target.value,
+                                            })
+                                        }
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-green-500"
+                                        required
+                                        placeholder="Enter type name (e.g., Engine Parts, Brake Components)"
                                     />
+                                </div>
+                                <div className="flex justify-end space-x-2">
+                                    <button
+                                        type="button"
+                                        onClick={resetForm}
+                                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                                    >
+                                        Cancel
+                                    </button>
                                     <button
                                         type="submit"
-                                        onClick={(e) =>
-                                            !confirm("Are you sure?") &&
-                                            e.preventDefault()
-                                        }
+                                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
                                     >
-                                        Delete
+                                        {editingType ? "Update" : "Add"}
                                     </button>
-                                </form>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
