@@ -1,210 +1,224 @@
 import { createClient } from "@/utils/supabase/client";
 import { useState, useEffect } from "react";
+import { User, Mail } from "lucide-react";
 
 const ProfilePopup = ({ user, onClose, onUpdate }) => {
-    const [name, setName] = useState(user.name || "");
-    const [contactNumber, setContactNumber] = useState(
-        user.contact_number || ""
-    );
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [hasPassword, setHasPassword] = useState(false);
-    const [checkingAuth, setCheckingAuth] = useState(true);
+  const [name, setName] = useState(user.name || "");
+  const [contactNumber, setContactNumber] = useState(user.contact_number || "");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [hasPassword, setHasPassword] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
-    useEffect(() => {
-        checkUserAuthMethod();
-    }, []);
+  useEffect(() => {
+    checkUserAuthMethod();
+  }, []);
 
-    const checkUserAuthMethod = async () => {
-        try {
-            const supabase = await createClient();
-            const {
-                data: { user: authUser },
-            } = await supabase.auth.getUser();
-            if (authUser) {
-                const providers = authUser.app_metadata?.providers || [];
-                setHasPassword(!providers.includes("google"));
-            }
-        } catch (error) {
-            console.error("Error checking auth method:", error);
-        } finally {
-            setCheckingAuth(false);
-        }
-    };
+  const checkUserAuthMethod = async () => {
+    try {
+      const supabase = await createClient();
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      if (authUser) {
+        const providers = authUser.app_metadata?.providers || [];
+        setHasPassword(!providers.includes("google"));
+      }
+    } catch (error) {
+      console.error("Error checking auth method:", error);
+    } finally {
+      setCheckingAuth(false);
+    }
+  };
 
-    const updateProfile = async () => {
-        setLoading(true);
-        try {
-            const supabase = await createClient();
-            const { error } = await supabase
-                .from("users")
-                .update({
-                    name: name,
-                    contact_number: contactNumber,
-                })
-                .eq("user_id", user.user_id);
+  const updateProfile = async () => {
+    setLoading(true);
+    try {
+      const supabase = await createClient();
+      const { error } = await supabase
+        .from("users")
+        .update({
+          name: name,
+          contact_number: contactNumber,
+        })
+        .eq("user_id", user.user_id);
 
-            if (error) throw error;
+      if (error) throw error;
 
-            if (onUpdate) {
-                onUpdate({ ...user, name, contact_number: contactNumber });
-            }
-        } catch (error) {
-            console.error("Error updating profile:", error);
-            alert("Error updating profile");
-        } finally {
-            setLoading(false);
-        }
-    };
+      if (onUpdate) {
+        onUpdate({ ...user, name, contact_number: contactNumber });
+      }
 
-    const changePassword = async () => {
-        if (password !== confirmPassword) {
-            alert("Passwords do not match");
-            return;
-        }
+      onClose();
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Error updating profile");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        if (password.length < 6) {
-            alert("Password must be at least 6 characters");
-            return;
-        }
+  const changePassword = async () => {
+    if (newPassword.length < 6) {
+      alert("Password must be at least 6 characters");
+      return;
+    }
 
-        setLoading(true);
-        try {
-            const supabase = await createClient();
-            const { error } = await supabase.auth.updateUser({
-                password: password,
-            });
+    setLoading(true);
+    try {
+      const supabase = await createClient();
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
 
-            if (error) throw error;
+      if (error) throw error;
 
-            setPassword("");
-            setConfirmPassword("");
-        } catch (error) {
-            console.error("Error updating password:", error);
-            alert("Error updating password");
-        } finally {
-            setLoading(false);
-        }
-    };
+      setCurrentPassword("");
+      setNewPassword("");
+      alert("Password updated successfully");
+    } catch (error) {
+      console.error("Error updating password:", error);
+      alert("Error updating password");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg w-96 max-h-[90vh] overflow-y-auto">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold">Profile Settings</h2>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-500 hover:text-gray-700"
-                    >
-                        ✕
-                    </button>
-                </div>
-
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-1">
-                            Full Name
-                        </label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="w-full border p-2 rounded"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-1">
-                            Email
-                        </label>
-                        <input
-                            type="email"
-                            value={user.email}
-                            disabled
-                            className="w-full border p-2 rounded bg-gray-100"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-1">
-                            Contact Number
-                        </label>
-                        <input
-                            type="text"
-                            value={contactNumber}
-                            onChange={(e) => setContactNumber(e.target.value)}
-                            className="w-full border p-2 rounded"
-                        />
-                    </div>
-
-                    <div className="flex space-x-2">
-                        <button
-                            onClick={onClose}
-                            className="flex-1 border p-2 rounded hover:bg-gray-50"
-                            disabled={loading}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={updateProfile}
-                            disabled={loading}
-                            className="flex-1 bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50"
-                        >
-                            {loading ? "Saving..." : "Save"}
-                        </button>
-                    </div>
-                </div>
-
-                {!checkingAuth && hasPassword && (
-                    <div className="mt-8 pt-6 border-t">
-                        <h3 className="text-lg font-semibold mb-4">
-                            Change Password
-                        </h3>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">
-                                    New Password
-                                </label>
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) =>
-                                        setPassword(e.target.value)
-                                    }
-                                    className="w-full border p-2 rounded"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium mb-1">
-                                    Confirm Password
-                                </label>
-                                <input
-                                    type="password"
-                                    value={confirmPassword}
-                                    onChange={(e) =>
-                                        setConfirmPassword(e.target.value)
-                                    }
-                                    className="w-full border p-2 rounded"
-                                />
-                            </div>
-
-                            <button
-                                onClick={changePassword}
-                                disabled={
-                                    loading || !password || !confirmPassword
-                                }
-                                className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 disabled:opacity-50"
-                            >
-                                {loading ? "Updating..." : "Change Password"}
-                            </button>
-                        </div>
-                    </div>
-                )}
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg w-[500px] max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+              <User size={20} className="text-orange-600" />
             </div>
+            <span className="font-medium text-gray-900">{user.name}</span>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-xl"
+          >
+            ✕
+          </button>
         </div>
-    );
+
+        {/* Personal Info Section */}
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Personal info
+            </h2>
+            <div className="flex space-x-3">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={updateProfile}
+                disabled={loading}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors"
+              >
+                {loading ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Full Name
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email address
+              </label>
+              <div className="relative">
+                <Mail
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
+                <input
+                  type="email"
+                  value={user.email}
+                  disabled
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Contact Number
+              </label>
+              <input
+                type="text"
+                value={contactNumber}
+                onChange={(e) => setContactNumber(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Password Section */}
+        {!checkingAuth && hasPassword && (
+          <div className="border-t px-6 py-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Change your password
+              </h2>
+              <button
+                onClick={changePassword}
+                disabled={loading || !currentPassword || !newPassword}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors"
+              >
+                {loading ? "Saving..." : "Save"}
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default ProfilePopup;

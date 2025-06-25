@@ -55,7 +55,6 @@ export const SearchProvider = ({ children, types }) => {
           selectedTypes={selectedTypes}
           onTypeToggle={handleTypeToggle}
           onClose={() => setShowFilterPopup(false)}
-          onConfirm={() => setShowFilterPopup(false)}
         />
       )}
     </SearchContext.Provider>
@@ -142,22 +141,24 @@ const HeaderPanel = ({ user, search, mechanic = false }) => {
             <DropdownMenuTrigger className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
               <Menu size={24} />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
+            <DropdownMenuContent align="end" className="w-80 p-6 bg-white border border-gray-200 rounded-lg shadow-lg">
+              <div 
+                className="flex items-center space-x-3 mb-6 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
                 onClick={() => setShowProfilePopup(true)}
-                className="cursor-pointer"
               >
-                <div className="flex items-center space-x-2">
-                  <User size={16} />
-                  <span>{profile.name}</span>
+                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                  <User size={20} className="text-orange-600" />
                 </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem
+                <div>
+                  <p className="font-medium text-gray-900">{profile.name}</p>
+                </div>
+              </div>
+              <button
                 onClick={handleLogout}
-                className="cursor-pointer"
+                className="w-full px-4 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-center font-medium"
               >
-                Logout
-              </DropdownMenuItem>
+                Log out
+              </button>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
