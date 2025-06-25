@@ -128,19 +128,23 @@ export default function BookingRequestsPanel({
     const getStatusColor = (status: string) => {
         switch (status?.toLowerCase()) {
             case "pending":
-                return "bg-yellow-100 text-yellow-800";
+                return "text-yellow-600";
             case "accepted":
-                return "bg-green-100 text-green-800";
+                return "text-green-600";
             case "completed":
-                return "bg-blue-100 text-blue-800";
+                return "text-blue-600";
             case "cancelled":
             case "rejected":
-                return "bg-red-100 text-red-800";
+                return "text-red-600";
             case "mixed":
-                return "bg-orange-100 text-orange-800";
+                return "text-orange-600";
             default:
-                return "bg-gray-100 text-gray-800";
+                return "text-gray-600";
         }
+    };
+
+    const formatStatus = (status: string) => {
+        return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
     };
 
     const handleGroupClick = (group: BookingGroup) => {
@@ -181,6 +185,16 @@ export default function BookingRequestsPanel({
         }
     };
 
+    const getVisiblePages = () => {
+        const maxVisible = 10;
+        const start = Math.max(
+            1,
+            Math.min(currentPage - 5, totalPages - maxVisible + 1)
+        );
+        const end = Math.min(totalPages, start + maxVisible - 1);
+        return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+    };
+
     return (
         <SearchProvider types={[]}>
             <div className="p-6 max-w-7xl mx-auto">
@@ -189,7 +203,7 @@ export default function BookingRequestsPanel({
                     search={false}
                     mechanic={userType != "customer"}
                 />
-                <div className="mb-8">
+                <div className="mb-8 pt-6">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">
                         Booking requests
                     </h1>
@@ -198,247 +212,249 @@ export default function BookingRequestsPanel({
                     </p>
                 </div>
 
-                <div className="bg-white rounded-lg shadow">
-                    <div className="bg-gray-50 p-4 border-b border-gray-200">
-                        <div className="flex items-center justify-between">
-                            <div className="flex-shrink-0">
-                                <h3 className="font-semibold text-gray-900">
-                                    Vehicle
-                                </h3>
-                            </div>
-
-                            <div className="flex items-center space-x-6">
-                                <div className="text-right">
-                                    <h3 className="font-semibold text-gray-900">
-                                        Parts Count
-                                    </h3>
-                                </div>
-
-                                <div className="text-right">
-                                    <h3 className="font-semibold text-gray-900">
-                                        Total Price
-                                    </h3>
-                                </div>
-
-                                <div className="text-right">
-                                    <h3 className="font-semibold text-gray-900">
-                                        Date
-                                    </h3>
-                                </div>
-
-                                <div className="text-right">
-                                    <h3 className="font-semibold text-gray-900">
-                                        Status
-                                    </h3>
-                                </div>
-
-                                <div className="flex items-center space-x-3">
-                                    <div className="w-10 h-10"></div>
-                                    <div className="text-right">
-                                        <h3 className="font-semibold text-gray-900">
-                                            {userType === "customer"
-                                                ? "Mechanic"
-                                                : "Customer"}
-                                        </h3>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="px-6 py-4 border-b border-gray-200">
+                        <h2 className="text-xl font-semibold text-gray-900">
+                            All booking requests
+                        </h2>
                     </div>
 
-                    <div className="overflow-hidden">
-                        {currentGroups.length === 0 ? (
-                            <div className="p-8 text-center text-gray-500">
-                                <p>No booking requests found.</p>
-                            </div>
-                        ) : (
-                            currentGroups.map((group) => (
-                                <button
-                                    key={group.booking_group_id}
-                                    onClick={() => handleGroupClick(group)}
-                                    className="w-full p-4 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors duration-200 text-left"
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex-shrink-0">
-                                            <h3 className="font-medium text-gray-900">
-                                                {group.vehicle?.name ||
-                                                    "Unknown Vehicle"}
-                                            </h3>
-                                            <p className="text-sm text-gray-500">
-                                                {group.vehicle?.make}{" "}
-                                                {group.vehicle?.model}{" "}
-                                                {group.vehicle?.year}
-                                            </p>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">
+                                        Booking
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/3">
+                                        <div className="grid grid-cols-5 gap-4">
+                                            <span>Parts</span>
+                                            <span>Total price</span>
+                                            <span>Date</span>
+                                            <span>Status</span>
+                                            <span>
+                                                {userType === "customer"
+                                                    ? "Mechanic"
+                                                    : "Customer"}
+                                            </span>
                                         </div>
-
-                                        <div className="flex items-center space-x-6">
-                                            <div className="text-right">
-                                                <p className="font-semibold text-gray-900">
-                                                    {group.bookings.length}{" "}
-                                                    parts
-                                                </p>
-                                                <p className="text-sm text-gray-500">
-                                                    {group.bookings.reduce(
-                                                        (sum, b) =>
-                                                            sum +
-                                                            (b.quantity || 1),
-                                                        0
-                                                    )}{" "}
-                                                    total qty
-                                                </p>
-                                            </div>
-
-                                            <div className="text-right">
-                                                <p className="font-semibold text-gray-900">
-                                                    {formatPrice(
-                                                        group.totalPrice
-                                                    )}
-                                                </p>
-                                            </div>
-
-                                            <div className="text-right">
-                                                <p className="text-gray-900">
-                                                    {formatDate(group.date)}
-                                                </p>
-                                            </div>
-
-                                            <div className="text-right">
-                                                <span
-                                                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                                                        group.status
-                                                    )}`}
-                                                >
-                                                    {group.status}
-                                                </span>
-                                            </div>
-
-                                            <div className="flex items-center space-x-3">
-                                                {userType === "customer" ? (
-                                                    <>
-                                                        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
-                                                            {group.mechanic
-                                                                ?.url ? (
-                                                                <Image
-                                                                    src={
-                                                                        group
-                                                                            .mechanic
-                                                                            .url
-                                                                    }
-                                                                    alt={
-                                                                        group
-                                                                            .mechanic
-                                                                            .name ||
-                                                                        "Mechanic"
-                                                                    }
-                                                                    width={100}
-                                                                    height={100}
-                                                                    className="w-full h-full object-cover"
-                                                                />
-                                                            ) : (
-                                                                <span className="text-xs font-medium text-gray-600">
-                                                                    {group.mechanic?.name?.charAt(
-                                                                        0
-                                                                    ) || "M"}
-                                                                </span>
-                                                            )}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {currentGroups.length === 0 ? (
+                                    <tr>
+                                        <td
+                                            colSpan={2}
+                                            className="px-6 py-12 text-center text-gray-500"
+                                        >
+                                            No booking requests found.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    currentGroups.map((group) => (
+                                        <tr
+                                            key={group.booking_group_id}
+                                            onClick={() =>
+                                                handleGroupClick(group)
+                                            }
+                                            className="hover:bg-gray-50 cursor-pointer transition-colors duration-200"
+                                        >
+                                            <td className="px-6 py-4 whitespace-nowrap w-1/3">
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        {group.vehicle?.name ||
+                                                            "Unknown Vehicle"}
+                                                    </div>
+                                                    <div className="text-sm text-gray-500">
+                                                        {group.vehicle?.make}{" "}
+                                                        {group.vehicle?.model}{" "}
+                                                        {group.vehicle?.year}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 w-2/3">
+                                                <div className="grid grid-cols-5 gap-4 items-center">
+                                                    <div>
+                                                        <div className="text-sm text-gray-900">
+                                                            {
+                                                                group.bookings
+                                                                    .length
+                                                            }{" "}
+                                                            parts
                                                         </div>
-                                                        <div className="text-right">
-                                                            <p className="font-medium text-gray-900">
-                                                                {group.mechanic
-                                                                    ?.name ||
-                                                                    "Unassigned"}
-                                                            </p>
-                                                        </div>
-                                                    </>
-                                                ) : (
-                                                    <div className="flex items-center space-x-3">
-                                                        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
-                                                            <span className="text-xs font-medium text-gray-600">
-                                                                {group.bookings[0]?.users?.name?.charAt(
-                                                                    0
-                                                                ) || "C"}
-                                                            </span>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className="font-medium text-gray-900">
-                                                                {group
-                                                                    .bookings[0]
-                                                                    ?.users
-                                                                    ?.name ||
-                                                                    "Unknown Customer"}
-                                                            </p>
-                                                            <p className="text-xs text-gray-500">
-                                                                {group
-                                                                    .bookings[0]
-                                                                    ?.users
-                                                                    ?.contact_number ||
-                                                                    "No contact"}
-                                                            </p>
+                                                        <div className="text-xs text-gray-500">
+                                                            {group.bookings.reduce(
+                                                                (sum, b) =>
+                                                                    sum +
+                                                                    (b.quantity ||
+                                                                        1),
+                                                                0
+                                                            )}{" "}
+                                                            total qty
                                                         </div>
                                                     </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </button>
-                            ))
-                        )}
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        {formatPrice(
+                                                            group.totalPrice
+                                                        )}
+                                                    </div>
+                                                    <div className="text-sm text-gray-900">
+                                                        {formatDate(group.date)}
+                                                    </div>
+                                                    <div>
+                                                        <div
+                                                            className={`flex items-center text-sm font-medium ${getStatusColor(
+                                                                group.status
+                                                            )}`}
+                                                        >
+                                                            <div
+                                                                className={`w-2 h-2 rounded-full mr-2 ${
+                                                                    group.status?.toLowerCase() ===
+                                                                    "pending"
+                                                                        ? "bg-yellow-600"
+                                                                        : group.status?.toLowerCase() ===
+                                                                          "accepted"
+                                                                        ? "bg-green-600"
+                                                                        : group.status?.toLowerCase() ===
+                                                                          "completed"
+                                                                        ? "bg-blue-600"
+                                                                        : group.status?.toLowerCase() ===
+                                                                              "cancelled" ||
+                                                                          group.status?.toLowerCase() ===
+                                                                              "rejected"
+                                                                        ? "bg-red-600"
+                                                                        : group.status?.toLowerCase() ===
+                                                                          "mixed"
+                                                                        ? "bg-orange-600"
+                                                                        : "bg-gray-600"
+                                                                }`}
+                                                            ></div>
+                                                            {formatStatus(
+                                                                group.status
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        {userType ===
+                                                        "customer" ? (
+                                                            <div className="flex items-center">
+                                                                <div className="w-8 h-8 bg-gray-300 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden mr-3">
+                                                                    {group
+                                                                        .mechanic
+                                                                        ?.url ? (
+                                                                        <Image
+                                                                            src={
+                                                                                group
+                                                                                    .mechanic
+                                                                                    .url
+                                                                            }
+                                                                            alt={
+                                                                                group
+                                                                                    .mechanic
+                                                                                    .name ||
+                                                                                "Mechanic"
+                                                                            }
+                                                                            width={
+                                                                                32
+                                                                            }
+                                                                            height={
+                                                                                32
+                                                                            }
+                                                                            className="w-full h-full object-cover"
+                                                                        />
+                                                                    ) : (
+                                                                        <span className="text-xs font-medium text-gray-600">
+                                                                            {group.mechanic?.name?.charAt(
+                                                                                0
+                                                                            ) ||
+                                                                                "M"}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <div className="text-sm font-medium text-gray-900 truncate">
+                                                                        {group
+                                                                            .mechanic
+                                                                            ?.name ||
+                                                                            "Unassigned"}
+                                                                    </div>
+                                                                    <div className="text-xs text-gray-500 truncate">
+                                                                        {group
+                                                                            .mechanic
+                                                                            ?.email ||
+                                                                            "No email"}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-center">
+                                                                <div className="w-8 h-8 bg-gray-300 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden mr-3">
+                                                                    <span className="text-xs font-medium text-gray-600">
+                                                                        {group.bookings[0]?.users?.name?.charAt(
+                                                                            0
+                                                                        ) ||
+                                                                            "C"}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <div className="text-sm font-medium text-gray-900 truncate">
+                                                                        {group
+                                                                            .bookings[0]
+                                                                            ?.users
+                                                                            ?.name ||
+                                                                            "Unknown Customer"}
+                                                                    </div>
+                                                                    <div className="text-xs text-gray-500 truncate">
+                                                                        {group
+                                                                            .bookings[0]
+                                                                            ?.users
+                                                                            ?.email ||
+                                                                            "No email"}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
 
                     {totalPages > 1 && (
-                        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
-                            <div className="text-sm text-gray-700">
-                                Page {currentPage} of {totalPages}
+                        <div className="px-6 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                                {getVisiblePages().map((pageNum) => (
+                                    <button
+                                        key={pageNum}
+                                        onClick={() => goToPage(pageNum)}
+                                        className={`px-3 py-1 text-sm border rounded transition-colors duration-200 ${
+                                            pageNum === currentPage
+                                                ? "bg-blue-500 text-white border-blue-500"
+                                                : "border-gray-300 hover:bg-gray-100 text-gray-700"
+                                        }`}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                ))}
                             </div>
 
                             <div className="flex items-center space-x-2">
                                 <button
                                     onClick={goToPrevious}
                                     disabled={currentPage === 1}
-                                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 transition-colors duration-200"
                                 >
                                     Previous
                                 </button>
-
-                                {Array.from(
-                                    { length: Math.min(5, totalPages) },
-                                    (_, i) => {
-                                        let pageNum;
-                                        if (totalPages <= 5) {
-                                            pageNum = i + 1;
-                                        } else if (currentPage <= 3) {
-                                            pageNum = i + 1;
-                                        } else if (
-                                            currentPage >=
-                                            totalPages - 2
-                                        ) {
-                                            pageNum = totalPages - 4 + i;
-                                        } else {
-                                            pageNum = currentPage - 2 + i;
-                                        }
-
-                                        return (
-                                            <button
-                                                key={pageNum}
-                                                onClick={() =>
-                                                    goToPage(pageNum)
-                                                }
-                                                className={`px-3 py-1 text-sm border rounded ${
-                                                    pageNum === currentPage
-                                                        ? "bg-blue-500 text-white border-blue-500"
-                                                        : "border-gray-300 hover:bg-gray-100"
-                                                }`}
-                                            >
-                                                {pageNum}
-                                            </button>
-                                        );
-                                    }
-                                )}
-
                                 <button
                                     onClick={goToNext}
                                     disabled={currentPage === totalPages}
-                                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 transition-colors duration-200"
                                 >
                                     Next
                                 </button>
