@@ -55,6 +55,7 @@ export const SearchProvider = ({ children, types }) => {
           selectedTypes={selectedTypes}
           onTypeToggle={handleTypeToggle}
           onClose={() => setShowFilterPopup(false)}
+          onConfirm={() => setShowFilterPopup(false)}
         />
       )}
     </SearchContext.Provider>
@@ -62,9 +63,9 @@ export const SearchProvider = ({ children, types }) => {
 };
 
 const HeaderPanel = ({ user, search, mechanic = false }) => {
-    const { searchTerm, setSearchTerm, setShowFilterPopup } = useSearch();
-    const [showProfilePopup, setShowProfilePopup] = useState(false);
-    const [profile, setProfile] = useState(user);
+  const { searchTerm, setSearchTerm, setShowFilterPopup } = useSearch();
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [profile, setProfile] = useState(user);
 
   const onUpdate = (updatedUser) => {
     setProfile(updatedUser);
