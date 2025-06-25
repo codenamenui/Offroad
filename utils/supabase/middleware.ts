@@ -43,7 +43,6 @@ export async function updateSession(request: NextRequest) {
 
     // Define public routes that don't require authentication
     const publicRoutes = [
-        "/",
         "/login",
         "/register",
         "/api/auth",
@@ -52,14 +51,14 @@ export async function updateSession(request: NextRequest) {
 
     // Define role-specific protected routes
     const protectedRoutes = {
-        user: ["/user/editor", "/editor", "/bookings"],
-        mechanic: ["/mechanic/bookings", "/schedule", "/mechanic"],
+        user: ["/user/editor", "/user/bookings"],
+        mechanic: ["/mechanic/bookings", "/mechanic/leaves"],
         admin: [
             "/admin/parts",
             "/admin/vehicles",
             "/admin/types",
+            "/admin/mechanics",
             "/admin/dashboard",
-            "/manage",
         ],
     };
 
@@ -69,7 +68,7 @@ export async function updateSession(request: NextRequest) {
     );
 
     // If no user and trying to access protected route, redirect to login
-    if (!user && !isPublicRoute) {
+    if ((!user && !isPublicRoute) || pathname == "/") {
         const url = request.nextUrl.clone();
         url.pathname = "/login";
         return NextResponse.redirect(url);
