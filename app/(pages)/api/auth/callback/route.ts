@@ -112,33 +112,37 @@ export async function GET(request: Request) {
                     }
                 }
             }
-
-            // Create/update basic user record
-            const { error: upsertUserError } = await supabase
-                .from("users")
-                .upsert({
-                    user_id: userId,
-                    name: name,
-                    email: userEmail,
-                    contact_number:
-                        userMeta.phone ||
-                        userMeta.phone_number ||
-                        userMeta.contact_number ||
-                        null,
-                });
-
-            if (upsertUserError) {
-                console.error("Error upserting user:", upsertUserError.message);
-            }
-
             // Check if OAuth user needs to complete profile
             const isOAuthUser = data.user.app_metadata?.provider !== "email";
-            const hasPhone =
-                userMeta.phone ||
-                userMeta.phone_number ||
-                userMeta.contact_number;
+            // let dict = {
+            //     user_id: userId,
+            //     name: name,
+            //     email: userEmail,
+            // };
+            // if (!isOAuthUser) {
+            //     dict = {
+            //         ...dict,
+            //         contact_number: userMeta.phone || userMeta.phone_number || userMeta.contact_number || null,
+            //     };
+            // }
+            // const { data: user, error: upsertUserError } = await supabase
+            //     .from("users")
+            //     .update(dict)
+            //     .eq("user_id", userId)
+            //     .select("contact_number")
+            //     .single();
 
-            if (isOAuthUser && !hasPhone) {
+            // if (upsertUserError) {
+            //     console.error("Error upserting user:", upsertUserError.message);
+            // }
+
+            const { data: user } = await supabase
+                .from("users")
+                .select("contact_number")
+                .eq("user_id", userId)
+                .single();
+
+            if (isOAuthUser && user.contact_number == null) {
                 return NextResponse.redirect(`${origin}/complete-profile`);
             }
 

@@ -96,7 +96,9 @@ const MechanicSelectionModal = ({
             .join("\n");
     };
 
-    const selectedMechanic = mechanics.find(m => m.id === bookingData.mechanic_id);
+    const selectedMechanic = mechanics.find(
+        (m) => m.id === bookingData.mechanic_id
+    );
 
     const handleMechanicSelect = (mechanic) => {
         const availability = mechanicAvailability[mechanic.id];
@@ -127,47 +129,67 @@ const MechanicSelectionModal = ({
                     <h2 className="text-xl font-semibold text-gray-900 mb-6">
                         Choose your mechanic
                     </h2>
-                    
+
                     <div className="mb-6">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Mechanics
                         </label>
-                        
+
                         <div className="relative">
                             <button
-                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                onClick={() =>
+                                    setIsDropdownOpen(!isDropdownOpen)
+                                }
                                 className="w-full flex items-center justify-between px-3 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             >
                                 <div className="flex items-center space-x-2">
                                     <User size={18} className="text-gray-400" />
                                     <span className="text-gray-900">
-                                        {selectedMechanic ? selectedMechanic.name : "Select a mechanic"}
+                                        {selectedMechanic
+                                            ? selectedMechanic.name
+                                            : "Select a mechanic"}
                                     </span>
                                 </div>
-                                <ChevronDown 
-                                    size={18} 
-                                    className={`text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} 
+                                <ChevronDown
+                                    size={18}
+                                    className={`text-gray-400 transition-transform ${
+                                        isDropdownOpen ? "rotate-180" : ""
+                                    }`}
                                 />
                             </button>
 
                             {isDropdownOpen && (
                                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
                                     {mechanics.map((mechanic) => {
-                                        const availability = mechanicAvailability[mechanic.id];
-                                        const isAvailable = availability?.isAvailable;
-                                        const isUnavailable = availability?.isUnavailable;
+                                        const availability =
+                                            mechanicAvailability[mechanic.id];
+                                        const isAvailable =
+                                            availability?.isAvailable;
+                                        const isUnavailable =
+                                            availability?.isUnavailable;
 
                                         return (
                                             <div
                                                 key={mechanic.id}
                                                 className={`px-3 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 ${
-                                                    !isAvailable ? "opacity-60 cursor-not-allowed" : ""
+                                                    !isAvailable
+                                                        ? "opacity-60 cursor-not-allowed"
+                                                        : ""
                                                 } ${
-                                                    bookingData.mechanic_id === mechanic.id ? "bg-orange-50" : ""
+                                                    bookingData.mechanic_id ===
+                                                    mechanic.id
+                                                        ? "bg-orange-50"
+                                                        : ""
                                                 }`}
-                                                onClick={() => handleMechanicSelect(mechanic)}
+                                                onClick={() =>
+                                                    handleMechanicSelect(
+                                                        mechanic
+                                                    )
+                                                }
                                                 onMouseEnter={(e) => {
-                                                    setHoveredMechanic(mechanic.id);
+                                                    setHoveredMechanic(
+                                                        mechanic.id
+                                                    );
                                                     setMousePosition({
                                                         x: e.clientX,
                                                         y: e.clientY,
@@ -179,11 +201,16 @@ const MechanicSelectionModal = ({
                                                         y: e.clientY,
                                                     });
                                                 }}
-                                                onMouseLeave={() => setHoveredMechanic(null)}
+                                                onMouseLeave={() =>
+                                                    setHoveredMechanic(null)
+                                                }
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center space-x-2">
-                                                        <User size={16} className="text-gray-400" />
+                                                        <User
+                                                            size={16}
+                                                            className="text-gray-400"
+                                                        />
                                                         <span className="font-medium text-gray-900">
                                                             {mechanic.name}
                                                         </span>
@@ -220,7 +247,7 @@ const MechanicSelectionModal = ({
                         >
                             Book
                         </button>
-                        
+
                         <button
                             onClick={handleClose}
                             className="w-full py-3 px-4 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
@@ -250,7 +277,8 @@ const MechanicSelectionModal = ({
                             : "Available"}
                     </div>
                     <div className="text-[11px] text-gray-300">
-                        <strong>Upcoming unavailable days:</strong><br/>
+                        <strong>Upcoming unavailable days:</strong>
+                        <br />
                         {formatUnavailableDays(
                             mechanicAvailability[hoveredMechanic]
                                 .upcomingUnavailableDays

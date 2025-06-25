@@ -4,12 +4,11 @@ import { useSearch } from "../../../../components/header";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const SearchPanel = ({
-  selectedVehicleId,
-  parts,
-  customizations,
-  setCustomizations,
-  isEditMode = false,
-  editBookingData = {},
+    selectedVehicleId,
+    parts,
+    customizations,
+    setCustomizations,
+    isEditMode = false,
 }) => {
     const { searchTerm, selectedTypes } = useSearch();
     const [scrollPosition, setScrollPosition] = useState(0);
@@ -18,48 +17,39 @@ const SearchPanel = ({
     const [startX, setStartX] = useState(0);
     const [startScrollLeft, setStartScrollLeft] = useState(0);
 
-  const filteredParts = useMemo(() => {
-    return parts.filter((part) => {
-      const matchesVehicle = part.vehicle_id === selectedVehicleId;
-      const matchesSearch = part.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const matchesType =
-        selectedTypes.length === 0 || selectedTypes.includes(part.type_id);
-      return matchesVehicle && matchesSearch && matchesType;
-    });
-  }, [parts, selectedVehicleId, searchTerm, selectedTypes]);
+    const filteredParts = useMemo(() => {
+        return parts.filter((part) => {
+            const matchesVehicle = part.vehicle_id === selectedVehicleId;
+            const matchesSearch = part.name
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase());
+            const matchesType =
+                selectedTypes.length === 0 ||
+                selectedTypes.includes(part.type_id);
+            return matchesVehicle && matchesSearch && matchesType;
+        });
+    }, [parts, selectedVehicleId, searchTerm, selectedTypes]);
 
-  const getAvailableQuantity = (part) => {
-    if (isEditMode) {
-      const originalBookingQuantity = editBookingData[part.id] || 0;
-      const customization = customizations.parts.find((c) => {
-        return c.part.id == part.id;
-      });
-      if (customization)
-        return (
-          part.available_quantity +
-          part.booked_quantity -
-          customization.quantity
-        );
-      return part.available_quantity + originalBookingQuantity;
-    } else {
-      return part.available_quantity;
-    }
-  };
+    const handleAddPart = (part) => {
+        const currentQuantity =
+            customizations?.parts?.find((c) => c.part.id === part.id)
+                ?.quantity || 0;
 
-  const handleAddPart = (part) => {
-    const currentQuantity =
-      customizations?.parts?.find((c) => c.part.id === part.id)?.quantity || 0;
+        let maxAllowed;
 
-    const maxAvailable = getAvailableQuantity(part);
+        if (isEditMode) {
+            maxAllowed =
+                part.stock - part.booked_quantity + part.edit_booking_quantity;
+        } else {
+            maxAllowed = part.available_quantity;
+        }
 
-    if (currentQuantity < maxAvailable) {
-      setCustomizations((prev) => {
-        const currentParts = prev?.parts || [];
-        const existingIndex = currentParts.findIndex(
-          (c) => c.part.id === part.id
-        );
+        if (currentQuantity < maxAllowed) {
+            setCustomizations((prev) => {
+                const currentParts = prev?.parts || [];
+                const existingIndex = currentParts.findIndex(
+                    (c) => c.part.id === part.id
+                );
 
                 if (existingIndex !== -1) {
                     const updatedParts = [...currentParts];
@@ -171,17 +161,25 @@ const SearchPanel = ({
             >
                 <div className="flex gap-4 h-full pb-4">
                     {filteredParts.map((part) => {
-                        const maxAvailable = getAvailableQuantity(part);
                         const currentQuantity =
                             customizations?.parts?.find(
                                 (c) => c.part.id === part.id
                             )?.quantity || 0;
+
+                        let maxAllowed;
                         let remainingAvailable;
+
                         if (isEditMode) {
-                            remainingAvailable = maxAvailable;
+                            maxAllowed =
+                                part.stock -
+                                part.booked_quantity +
+                                part.edit_booking_quantity;
+                            remainingAvailable = maxAllowed - currentQuantity;
                         } else {
-                            remainingAvailable = maxAvailable - currentQuantity;
+                            maxAllowed = part.available_quantity;
+                            remainingAvailable = maxAllowed - currentQuantity;
                         }
+
                         return (
                             <div key={part.id} className="flex-shrink-0 w-64">
                                 <PartItem

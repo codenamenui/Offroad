@@ -43,18 +43,12 @@ async function getPartsWithAvailability(
         throw new Error(`Failed to fetch parts: ${partsError.message}`);
     }
 
-    let bookingsQuery = supabase
+    const bookingsQuery = supabase
         .from("bookings")
         .select("part_id, quantity, user_id, booking_group_id")
         .in("status", ["pending", "accepted", "in_progress"]);
 
-    if (userId && editBookingGroupId) {
-        bookingsQuery = bookingsQuery.or(
-            `user_id.neq.${userId},booking_group_id.eq.${editBookingGroupId}`
-        );
-    }
-
-    const { data: bookings, error: bookingsError } = await bookingsQuery;
+    const { data: allBookings, error: bookingsError } = await bookingsQuery;
 
     if (bookingsError) {
         console.error("Error fetching bookings:", bookingsError);
@@ -62,7 +56,7 @@ async function getPartsWithAvailability(
     }
 
     const bookingsByPart =
-        bookings?.reduce((acc, booking) => {
+        allBookings?.reduce((acc, booking) => {
             if (!acc[booking.part_id]) {
                 acc[booking.part_id] = 0;
             }
@@ -70,12 +64,27 @@ async function getPartsWithAvailability(
             return acc;
         }, {}) || {};
 
+    const editBookingsByPart = editBookingGroupId
+        ? allBookings?.reduce((acc, booking) => {
+              if (booking.booking_group_id === editBookingGroupId) {
+                  if (!acc[booking.part_id]) {
+                      acc[booking.part_id] = 0;
+                  }
+                  acc[booking.part_id] += booking.quantity || 0;
+              }
+              return acc;
+          }, {}) || {}
+        : {};
+
     const partsWithAvailability =
         parts?.map((part) => ({
             ...part,
             booked_quantity: bookingsByPart[part.id] || 0,
             available_quantity: part.stock - (bookingsByPart[part.id] || 0),
+            edit_booking_quantity: editBookingsByPart[part.id] || 0,
+            booking_group_id: editBookingGroupId,
         })) || [];
+
     return partsWithAvailability;
 }
 
@@ -126,14 +135,12 @@ async function getEditBooking(
     return bookings;
 }
 
-// Server Component that handles the data fetching
 async function EditorPageContent({
     searchParams,
 }: {
     searchParams: Promise<{ edit_booking?: string }>;
 }) {
     try {
-        // Await searchParams before accessing its properties
         const resolvedSearchParams = await searchParams;
 
         const supabase = await createClient();
@@ -170,7 +177,6 @@ async function EditorPageContent({
         let editBookingData = null;
         let editBookingGroupId = null;
 
-        // Use the resolved searchParams
         if (resolvedSearchParams.edit_booking) {
             editBookingGroupId = parseInt(resolvedSearchParams.edit_booking);
             editBooking = await getEditBooking(supabase, editBookingGroupId);
@@ -181,6 +187,8 @@ async function EditorPageContent({
                         (acc[booking.part_id] || 0) + (booking.quantity || 0);
                     return acc;
                 }, {}) || {};
+
+            console.log(editBookingData);
         }
 
         const parts = await getPartsWithAvailability(
@@ -223,7 +231,6 @@ async function EditorPageContent({
     }
 }
 
-// Main component with Suspense boundary
 export default function EditorPage({
     searchParams,
 }: {

@@ -158,7 +158,7 @@ const VehiclePanel = ({
         if (isUpdating || isLoading) return;
         setIsEditMode(false);
         setCustomizations({ parts: [] });
-        router.push("/user/editor");
+        window.location.href = "/user/editor"; // This will do a full page reload
     };
 
     const refreshPartsAvailability = async () => {
@@ -234,6 +234,7 @@ const VehiclePanel = ({
         });
         setShowConfirmationModal(false);
         setBookingData({ mechanic_id: null, date: null });
+        window.location.reload(); // Add this line
     };
 
     const updateBookingInSupabase = async () => {
