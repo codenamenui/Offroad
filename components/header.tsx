@@ -85,7 +85,7 @@ const HeaderPanel = ({ user, search, mechanic = false }) => {
 
     return (
         <>
-            <header className="flex items-center justify-between px-6 py-4 border-b bg-white font-inter">
+            <header className={`flex items-center px-6 py-4 border-b bg-white font-inter ${search ? 'justify-between' : 'justify-between'}`}>
                 {/* Left side - Logo and Navigation */}
                 <div className="flex items-center space-x-8">
                     <div className="flex items-center space-x-3">
@@ -135,7 +135,7 @@ const HeaderPanel = ({ user, search, mechanic = false }) => {
                     </nav>
                 </div>
 
-                {/* Center - Search Bar */}
+                {/* Center - Search Bar (only when search is enabled) */}
                 {search && (
                     <div className="flex items-center space-x-3 flex-1 max-w-5xl mx-8">
                         <div className="relative flex-1">
