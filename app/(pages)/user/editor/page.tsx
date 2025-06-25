@@ -36,7 +36,7 @@ async function getPartsWithAvailability(
 ): Promise<Part[]> {
     const { data: parts, error: partsError } = await supabase
         .from("parts")
-        .select("*");
+        .select("*, types(name)");
 
     if (partsError) {
         console.error("Error fetching parts:", partsError);

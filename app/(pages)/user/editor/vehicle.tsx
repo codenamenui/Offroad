@@ -295,24 +295,26 @@ const VehiclePanel = ({
         router.push("/user/bookings");
     };
 
-    const isQuantityAtMax = (part) => {
-        const currentQuantity =
-            customizations?.parts?.find((c) => c.part.id === part.id)
-                ?.quantity || 0;
-        const maxAvailable = getAvailableQuantity(part);
-        return currentQuantity >= maxAvailable;
-    };
-
     return (
-        <div>
-            <div>
+        <div className="max-w-4xl mx-auto p-6 bg-gray-50 min-h-screen">
+            <div className="flex rounded-lg overflow-hidden border border-gray-300 mb-8">
                 {vehicles.map((vehicle) => (
                     <button
                         key={vehicle.id}
                         onClick={() => setSelectedVehicleId(vehicle.id)}
-                        className={
-                            selectedVehicleId === vehicle.id ? "active" : ""
-                        }
+                        className={`
+                            flex-1 py-3 px-6 font-medium transition-all duration-200 border-r border-gray-300 last:border-r-0
+                            ${
+                                selectedVehicleId === vehicle.id
+                                    ? "bg-gray-100 text-gray-900"
+                                    : "bg-white text-gray-600 hover:bg-gray-50"
+                            }
+                            ${
+                                isEditMode || isUpdating
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                            }
+                        `}
                         disabled={isEditMode || isUpdating}
                     >
                         {vehicle.name}
@@ -320,60 +322,82 @@ const VehiclePanel = ({
                 ))}
             </div>
 
-            <div>
-                <h3>{isEditMode ? "Edit Booking" : "Customizations"}</h3>
-                <div>
-                    <strong>Total: ${getTotalPrice()}</strong>
-                </div>
-                {filteredCustomizations.map((customization) => (
-                    <div key={customization.part.id}>
-                        <span>{customization.part.name}</span>
-                        <span>Unit Price: ${customization.part.price}</span>
-                        <button
-                            onClick={() =>
-                                updatePartQuantity(
-                                    parts.find(
-                                        (part) =>
-                                            part.id == customization.part.id
-                                    ),
-                                    customization.quantity - 1
-                                )
-                            }
-                            disabled={isUpdating || isLoading}
-                        >
-                            -
-                        </button>
-                        <span>{customization.quantity}</span>
-                        <button
-                            onClick={() =>
-                                updatePartQuantity(
-                                    parts.find(
-                                        (part) =>
-                                            part.id == customization.part.id
-                                    ),
-                                    customization.quantity + 1
-                                )
-                            }
-                            disabled={
-                                isQuantityAtMax(customization.part) ||
-                                isUpdating ||
-                                isLoading
-                            }
-                        >
-                            +
-                        </button>
-                        <span>
-                            Total: $
-                            {customization.part.price * customization.quantity}
-                        </span>
-                    </div>
-                ))}
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">
+                {isEditMode ? "Edit Booking" : "Selected Parts"}
+            </h3>
 
+            {filteredCustomizations.length > 0 ? (
+                <div className="space-y-4">
+                    {filteredCustomizations.map((customization) => (
+                        <div
+                            key={customization.part.id}
+                            className="flex items-center justify-between py-3"
+                        >
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={() =>
+                                        updatePartQuantity(
+                                            parts.find(
+                                                (part) =>
+                                                    part.id ==
+                                                    customization.part.id
+                                            ),
+                                            customization.quantity - 1
+                                        )
+                                    }
+                                    disabled={isUpdating || isLoading}
+                                    className="text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-lg"
+                                >
+                                    −
+                                </button>
+
+                                <div className="font-medium text-gray-900">
+                                    {customization.part.name}
+                                </div>
+
+                                <div className="bg-gray-200 rounded-full px-3 py-1 text-sm font-medium text-gray-700">
+                                    ×{customization.quantity}
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-6">
+                                <div className="text-lg font-semibold text-gray-900 min-w-[80px] text-right">
+                                    ₱
+                                    {(
+                                        customization.part.price *
+                                        customization.quantity
+                                    ).toFixed(2)}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+
+                    <div className="pt-4 border-t border-gray-200">
+                        <div className="text-xl font-semibold text-gray-900 text-right">
+                            Total: ₱{getTotalPrice().toFixed(2)}
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className="text-center py-12 text-gray-500">
+                    <div className="text-lg">No parts selected</div>
+                    <div className="text-sm">
+                        Add parts to your cart to continue
+                    </div>
+                </div>
+            )}
+
+            <div className="flex justify-center gap-4 pt-8">
                 {isEditMode ? (
-                    <div>
+                    <>
                         <button
                             onClick={handleUpdateBooking}
-                            disabled={isUpdating || isLoading}
+                            disabled={
+                                isUpdating ||
+                                isLoading ||
+                                filteredCustomizations.length === 0
+                            }
+                            className="bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200"
                         >
                             {isUpdating || isLoading
                                 ? "Processing..."
@@ -382,14 +406,20 @@ const VehiclePanel = ({
                         <button
                             onClick={handleCancelEdit}
                             disabled={isUpdating || isLoading}
+                            className="bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 font-semibold py-3 px-8 rounded-lg transition-all duration-200"
                         >
                             Cancel Edit
                         </button>
-                    </div>
+                    </>
                 ) : (
                     <button
                         onClick={handleBookNow}
-                        disabled={isUpdating || isLoading}
+                        disabled={
+                            isUpdating ||
+                            isLoading ||
+                            filteredCustomizations.length === 0
+                        }
+                        className="bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200"
                     >
                         {isUpdating || isLoading ? "Processing..." : "Book Now"}
                     </button>

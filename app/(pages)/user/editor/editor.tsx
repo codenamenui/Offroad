@@ -80,34 +80,41 @@ const EditorPanel = ({
     return (
         <SearchProvider types={types}>
             <HeaderPanel user={user} search={true} />
-            <div className="flex">
-                <VehiclePanel
-                    vehicles={vehicles}
-                    selectedVehicleId={selectedVehicleId}
-                    setSelectedVehicleId={setSelectedVehicleId}
-                    customizations={customizations}
-                    setCustomizations={setCustomizations}
-                    mechanics={mechanics}
-                    isEditMode={isEditMode}
-                    setIsEditMode={setIsEditMode}
-                    editBookingGroupId={editBookingGroupId}
-                    editBookingData={editBookingData}
-                    parts={parts}
-                />
-                <div className="flex flex-col">
-                    <Image
-                        src={selectedVehicle?.url}
-                        alt={selectedVehicle?.name}
-                        width="300"
-                        height="200"
-                    />
-                    <SearchPanel
+            <div className="flex h-screen">
+                <div className="w-[30%] border-r-2 border-gray-300">
+                    <VehiclePanel
+                        vehicles={vehicles}
                         selectedVehicleId={selectedVehicleId}
-                        parts={parts}
+                        setSelectedVehicleId={setSelectedVehicleId}
                         customizations={customizations}
                         setCustomizations={setCustomizations}
+                        mechanics={mechanics}
                         isEditMode={isEditMode}
+                        setIsEditMode={setIsEditMode}
+                        editBookingGroupId={editBookingGroupId}
+                        editBookingData={editBookingData}
+                        parts={parts}
                     />
+                </div>
+                <div className="flex flex-col w-[70%] h-[90%]">
+                    <div className="flex-1 border-b-2 border-gray-300 flex items-center justify-center bg-gray-50">
+                        <Image
+                            src={selectedVehicle?.url}
+                            alt={selectedVehicle?.name}
+                            width="300"
+                            height="200"
+                            className="max-w-full max-h-full object-contain"
+                        />
+                    </div>
+                    <div className="h-80 overflow-hidden">
+                        <SearchPanel
+                            selectedVehicleId={selectedVehicleId}
+                            parts={parts}
+                            customizations={customizations}
+                            setCustomizations={setCustomizations}
+                            isEditMode={isEditMode}
+                        />
+                    </div>
                 </div>
             </div>
         </SearchProvider>
