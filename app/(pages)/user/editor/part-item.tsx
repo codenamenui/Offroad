@@ -7,7 +7,9 @@ const PartItem = ({
     availableQuantity = null,
 }) => {
     const displayStock =
-        availableQuantity !== null ? availableQuantity : part.stock;
+        availableQuantity !== null
+            ? availableQuantity
+            : part.available_quantity || part.stock;
 
     const containerClasses = [
         "border",
@@ -30,8 +32,7 @@ const PartItem = ({
             <p>{part.description}</p>
             <p>${part.price}</p>
             <p>
-                {availableQuantity !== null ? "Available: " : "Stock: "}
-                {displayStock}
+                Available: {displayStock}
                 {displayStock === 0 && (
                     <span className="text-red-500 ml-2">(Out of Stock)</span>
                 )}

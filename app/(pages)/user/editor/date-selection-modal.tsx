@@ -107,7 +107,7 @@ const DateSelectionModal = ({ isOpen, onClose, onNext }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+        <div className="fixed z-50 inset-0 bg-black bg-opacity-50 flex justify-center items-center">
             <div className="bg-white p-5 rounded-lg min-w-96">
                 <div className="flex justify-between items-center mb-5">
                     <button onClick={() => changeMonth(-1)}>&lt;</button>

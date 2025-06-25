@@ -92,6 +92,7 @@ const EditorPanel = ({
                     setIsEditMode={setIsEditMode}
                     editBookingGroupId={editBookingGroupId}
                     editBookingData={editBookingData}
+                    parts={parts}
                 />
                 <div className="flex flex-col">
                     <Image
@@ -105,6 +106,7 @@ const EditorPanel = ({
                         parts={parts}
                         customizations={customizations}
                         setCustomizations={setCustomizations}
+                        isEditMode={isEditMode}
                     />
                 </div>
             </div>

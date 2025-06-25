@@ -25,21 +25,22 @@ const SearchPanel = ({
         });
     }, [parts, selectedVehicleId, searchTerm, selectedTypes]);
 
-    // Same logic as VehiclePanel for getting available quantity
     const getAvailableQuantity = (part) => {
-        const currentBookingQuantity =
-            isEditMode && editBookingData[part.id]
-                ? editBookingData[part.id]
-                : 0;
-        const currentCustomizationQuantity =
-            customizations?.parts?.find((c) => c.part.id === part.id)
-                ?.quantity || 0;
-
-        return (
-            part.available_quantity +
-            currentBookingQuantity -
-            currentCustomizationQuantity
-        );
+        if (isEditMode) {
+            const originalBookingQuantity = editBookingData[part.id] || 0;
+            const customization = customizations.parts.find((c) => {
+                return c.part.id == part.id;
+            });
+            if (customization)
+                return (
+                    part.available_quantity +
+                    part.booked_quantity -
+                    customization.quantity
+                );
+            return part.available_quantity + originalBookingQuantity;
+        } else {
+            return part.available_quantity;
+        }
     };
 
     const handleAddPart = (part) => {
@@ -47,10 +48,9 @@ const SearchPanel = ({
             customizations?.parts?.find((c) => c.part.id === part.id)
                 ?.quantity || 0;
 
-        const availableQuantity = getAvailableQuantity(part);
+        const maxAvailable = getAvailableQuantity(part);
 
-        // Check if we can add more (same logic as VehiclePanel)
-        if (currentQuantity < availableQuantity + currentQuantity) {
+        if (currentQuantity < maxAvailable) {
             setCustomizations((prev) => {
                 const currentParts = prev?.parts || [];
                 const existingIndex = currentParts.findIndex(
@@ -76,24 +76,28 @@ const SearchPanel = ({
     return (
         <div>
             <div>
-                {filteredParts.map((part) => (
-                    <PartItem
-                        key={part.id}
-                        part={part}
-                        onAddPart={() => handleAddPart(part)}
-                        isDisabled={
-                            getAvailableQuantity(part) <= 0 ||
-                            (customizations?.parts?.find(
-                                (c) => c.part.id === part.id
-                            )?.quantity || 0) >=
-                                getAvailableQuantity(part) +
-                                    (customizations?.parts?.find(
-                                        (c) => c.part.id === part.id
-                                    )?.quantity || 0)
-                        }
-                        availableQuantity={getAvailableQuantity(part)}
-                    />
-                ))}
+                {filteredParts.map((part) => {
+                    const maxAvailable = getAvailableQuantity(part);
+                    const currentQuantity =
+                        customizations?.parts?.find(
+                            (c) => c.part.id === part.id
+                        )?.quantity || 0;
+                    let remainingAvailable;
+                    if (isEditMode) {
+                        remainingAvailable = maxAvailable;
+                    } else {
+                        remainingAvailable = maxAvailable - currentQuantity;
+                    }
+                    return (
+                        <PartItem
+                            key={part.id}
+                            part={part}
+                            onAddPart={() => handleAddPart(part)}
+                            isDisabled={remainingAvailable <= 0}
+                            availableQuantity={remainingAvailable}
+                        />
+                    );
+                })}
             </div>
         </div>
     );

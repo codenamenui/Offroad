@@ -86,7 +86,7 @@ export default async function MechanicDashboard() {
         }
 
         const bookings = await getMechanicBookings(supabase, mechanic.id);
-        console.log(bookings);
+
         return (
             <div>
                 <BookingRequestsPanel

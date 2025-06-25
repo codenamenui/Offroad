@@ -18,6 +18,7 @@ const BookingConfirmationModal = ({
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
+                zIndex: 50,
             }}
         >
             <div

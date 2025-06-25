@@ -75,7 +75,6 @@ async function getPartsWithAvailability(
             booked_quantity: bookingsByPart[part.id] || 0,
             available_quantity: part.stock - (bookingsByPart[part.id] || 0),
         })) || [];
-
     return partsWithAvailability;
 }
 

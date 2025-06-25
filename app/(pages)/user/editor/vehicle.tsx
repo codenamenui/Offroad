@@ -11,6 +11,7 @@ const VehiclePanel = ({
     setSelectedVehicleId,
     customizations,
     setCustomizations,
+    parts,
     mechanics,
     isEditMode = false,
     editBookingGroupId = null,
@@ -29,33 +30,20 @@ const VehiclePanel = ({
     const router = useRouter();
 
     const getAvailableQuantity = (part) => {
-        const currentBookingQuantity =
-            isEditMode && editBookingData[part.id]
-                ? editBookingData[part.id]
-                : 0;
-        const currentCustomizationQuantity =
-            customizations?.parts?.find((c) => c.part.id === part.id)
-                ?.quantity || 0;
-
-        return (
-            part.available_quantity +
-            currentBookingQuantity -
-            currentCustomizationQuantity
-        );
+        if (isEditMode) {
+            const originalBookingQuantity = editBookingData[part.id] || 0;
+            return part.available_quantity + originalBookingQuantity;
+        } else {
+            return part.available_quantity;
+        }
     };
 
     const updatePartQuantity = (part, newQuantity) => {
         if (newQuantity < 0 || isUpdating || isLoading) return;
 
-        const availableQuantity = getAvailableQuantity(part);
+        const maxAvailable = getAvailableQuantity(part);
 
-        if (
-            newQuantity >
-            availableQuantity +
-                (customizations?.parts?.find((c) => c.part.id === part.id)
-                    ?.quantity || 0)
-        )
-            return;
+        if (newQuantity > maxAvailable) return;
 
         setCustomizations((prev) => {
             const currentParts = prev?.parts || [];
@@ -176,7 +164,7 @@ const VehiclePanel = ({
     const refreshPartsAvailability = async () => {
         const supabase = await createClient();
 
-        let bookingsQuery = supabase
+        const bookingsQuery = supabase
             .from("bookings")
             .select("part_id, quantity")
             .in("status", ["pending", "accepted", "in_progress"]);
@@ -311,8 +299,8 @@ const VehiclePanel = ({
         const currentQuantity =
             customizations?.parts?.find((c) => c.part.id === part.id)
                 ?.quantity || 0;
-        const availableQuantity = getAvailableQuantity(part);
-        return currentQuantity >= availableQuantity + currentQuantity;
+        const maxAvailable = getAvailableQuantity(part);
+        return currentQuantity >= maxAvailable;
     };
 
     return (
@@ -344,7 +332,10 @@ const VehiclePanel = ({
                         <button
                             onClick={() =>
                                 updatePartQuantity(
-                                    customization.part,
+                                    parts.find(
+                                        (part) =>
+                                            part.id == customization.part.id
+                                    ),
                                     customization.quantity - 1
                                 )
                             }
@@ -356,7 +347,10 @@ const VehiclePanel = ({
                         <button
                             onClick={() =>
                                 updatePartQuantity(
-                                    customization.part,
+                                    parts.find(
+                                        (part) =>
+                                            part.id == customization.part.id
+                                    ),
                                     customization.quantity + 1
                                 )
                             }
