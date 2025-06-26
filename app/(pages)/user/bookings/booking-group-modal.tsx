@@ -103,6 +103,62 @@ export default function BookingGroupModal({
     const handleCancelGroup = () => handleGroupStatusChange("cancelled");
     const handleAcceptGroup = () => handleGroupStatusChange("accepted");
     const handleRejectGroup = () => handleGroupStatusChange("rejected");
+    const handleMarkForPayment = () => handleGroupStatusChange("for_payment");
+    const handleMarkCompleted = async () => {
+        setIsLoading(true);
+        try {
+            const supabase = await createClient();
+
+            const bookingIds = currentBookingGroup.bookings.map((b) => b.id);
+            const { error: statusError } = await supabase
+                .from("bookings")
+                .update({ status: "completed" })
+                .in("id", bookingIds);
+
+            if (statusError) {
+                console.error("Error updating booking status:", statusError);
+                return;
+            }
+
+            for (const booking of currentBookingGroup.bookings) {
+                const currentStock = booking.parts?.stock || 0;
+                const newStock = Math.max(
+                    0,
+                    currentStock - (booking.quantity || 1)
+                );
+
+                const { error: stockError } = await supabase
+                    .from("parts")
+                    .update({ stock: newStock })
+                    .eq("id", booking.part_id);
+
+                if (stockError) {
+                    console.error("Error updating part stock:", stockError);
+                }
+            }
+
+            const updatedBookings = currentBookingGroup.bookings.map(
+                (booking) => ({
+                    ...booking,
+                    status: "completed",
+                })
+            );
+
+            const updatedGroup = {
+                ...currentBookingGroup,
+                bookings: updatedBookings,
+                status: "completed",
+            };
+
+            setCurrentBookingGroup(updatedGroup);
+            onUpdate(updatedGroup);
+        } catch (error) {
+            console.error("Error completing booking:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    const handlePayment = () => handleGroupStatusChange("paid");
 
     const handleChangeInEditor = () => {
         router.push(
@@ -112,11 +168,15 @@ export default function BookingGroupModal({
     };
 
     const canModify = currentBookingGroup.status === "pending";
+    const canMarkForPayment =
+        currentBookingGroup.status === "accepted" ||
+        currentBookingGroup.status === "in_progress";
+    const canMarkCompleted = currentBookingGroup.status === "paid";
+    const canPay = currentBookingGroup.status === "for_payment";
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl w-full max-w-md mx-auto max-h-screen overflow-y-auto">
-                {/* Vehicle Image */}
                 <div className="relative">
                     {currentBookingGroup.vehicle?.url ? (
                         <Image
@@ -132,7 +192,6 @@ export default function BookingGroupModal({
                         </div>
                     )}
 
-                    {/* Close button */}
                     <button
                         onClick={onClose}
                         className="absolute top-4 right-4 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-50"
@@ -142,7 +201,6 @@ export default function BookingGroupModal({
                 </div>
 
                 <div className="px-6 pb-6">
-                    {/* Booking Details Header */}
                     <div className="mt-4 mb-6">
                         <h2 className="text-xl font-bold text-gray-900 mb-1">
                             Booking Details
@@ -153,7 +211,6 @@ export default function BookingGroupModal({
                         </p>
                     </div>
 
-                    {/* Customer/Mechanic Info Grid */}
                     <div className="grid grid-cols-2 gap-4 mb-6">
                         <div>
                             <p className="text-sm text-gray-600 mb-1">
@@ -177,17 +234,31 @@ export default function BookingGroupModal({
                                             : currentBookingGroup.status ===
                                               "completed"
                                             ? "bg-blue-400"
+                                            : currentBookingGroup.status ===
+                                              "for_payment"
+                                            ? "bg-purple-400"
+                                            : currentBookingGroup.status ===
+                                              "paid"
+                                            ? "bg-indigo-400"
+                                            : currentBookingGroup.status ===
+                                              "in_progress"
+                                            ? "bg-yellow-400"
                                             : "bg-red-400"
                                     }`}
                                 ></div>
                                 <span className="text-sm font-medium capitalize">
-                                    {currentBookingGroup.status}
+                                    {currentBookingGroup.status ===
+                                    "for_payment"
+                                        ? "For Payment"
+                                        : currentBookingGroup.status.replace(
+                                              "_",
+                                              " "
+                                          )}
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Parts Ordered Section */}
                     <div className="mb-6">
                         <h3 className="font-bold text-gray-900 mb-4">
                             Parts Ordered
@@ -250,7 +321,6 @@ export default function BookingGroupModal({
                         </div>
                     </div>
 
-                    {/* Total */}
                     <div className="border-t border-gray-200 pt-4 mb-6">
                         <div className="flex justify-between items-center">
                             <span className="text-sm text-gray-600">
@@ -262,9 +332,7 @@ export default function BookingGroupModal({
                         </div>
                     </div>
 
-                    {/* Action Buttons */}
                     <div className="space-y-3">
-                        {/* Always show Cancel/Close button */}
                         <button
                             onClick={onClose}
                             className="w-full py-3 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
@@ -273,7 +341,6 @@ export default function BookingGroupModal({
                             Close
                         </button>
 
-                        {/* Only show action buttons for customers and mechanics, not admin */}
                         {userType === "customer" && canModify && (
                             <>
                                 <button
@@ -293,6 +360,16 @@ export default function BookingGroupModal({
                                         : "Cancel Booking"}
                                 </button>
                             </>
+                        )}
+
+                        {userType === "customer" && canPay && (
+                            <button
+                                onClick={handlePayment}
+                                className="w-full py-3 bg-blue-500 text-white rounded-xl font-medium hover:bg-blue-600 transition-colors"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? "Processing..." : "Pay Now"}
+                            </button>
                         )}
 
                         {userType === "mechanic" && canModify && (
@@ -316,6 +393,28 @@ export default function BookingGroupModal({
                                         : "Reject Order"}
                                 </button>
                             </>
+                        )}
+
+                        {userType === "mechanic" && canMarkForPayment && (
+                            <button
+                                onClick={handleMarkForPayment}
+                                className="w-full py-3 bg-purple-500 text-white rounded-xl font-medium hover:bg-purple-600 transition-colors"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? "Updating..." : "Mark for Payment"}
+                            </button>
+                        )}
+
+                        {userType === "mechanic" && canMarkCompleted && (
+                            <button
+                                onClick={handleMarkCompleted}
+                                className="w-full py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors"
+                                disabled={isLoading}
+                            >
+                                {isLoading
+                                    ? "Completing..."
+                                    : "Mark as Completed"}
+                            </button>
                         )}
                     </div>
                 </div>
