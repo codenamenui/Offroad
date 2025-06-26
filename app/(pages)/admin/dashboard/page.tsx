@@ -192,6 +192,54 @@ export default async function AdminDashboard() {
                                 </div>
                             </div>
                         </Link>
+
+                        {/* New Bookings Button */}
+                        <Link href="/admin/bookings" className="block">
+                            <div className="border border-gray-300 rounded-md px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-amber-500 focus-within:border-amber-500 hover:border-amber-500 transition-colors">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="text-amber-600">
+                                            <svg
+                                                className="w-8 h-8"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">
+                                                Bookings
+                                            </label>
+                                            <p className="text-sm text-gray-600">
+                                                Manage booking requests
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span className="text-2xl font-bold text-amber-600">
+                                        <svg
+                                            className="w-6 h-6"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M9 5l7 7-7 7"
+                                            />
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                        </Link>
                     </div>
 
                     <div className="mt-6">
