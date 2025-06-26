@@ -231,8 +231,6 @@ const LoginPage = () => {
                     )}
                 </div>
 
-                <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
-                <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/30"></div>
             </div>
 
             <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-md">
