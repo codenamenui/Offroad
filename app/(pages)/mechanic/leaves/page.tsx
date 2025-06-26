@@ -82,8 +82,12 @@ export default function MechanicLeaveCalendar() {
     return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
   };
 
+  // Fixed formatDateString to avoid timezone issues
   const formatDateString = (date: Date) => {
-    return date.toISOString().split("T")[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const getUnavailableDay = (date: Date) => {
@@ -421,7 +425,7 @@ export default function MechanicLeaveCalendar() {
                 </h3>
                 <p className="text-gray-600 mt-2">
                   {selectedDate &&
-                    new Date(selectedDate).toLocaleDateString("en-US", {
+                    new Date(selectedDate + 'T00:00:00').toLocaleDateString("en-US", {
                       weekday: "long",
                       year: "numeric",
                       month: "long",
