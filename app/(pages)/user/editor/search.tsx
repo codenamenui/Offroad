@@ -1,5 +1,5 @@
-// SearchPanel.tsx - Updated for smaller layout
-import React, { useMemo, useState, useRef } from "react";
+// SearchPanel.tsx - Fixed horizontal scrolling
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import PartItem from "./part-item";
 import { useSearch } from "../../../../components/header";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -13,6 +13,8 @@ const SearchPanel = ({
 }) => {
     const { searchTerm, selectedTypes } = useSearch();
     const [scrollPosition, setScrollPosition] = useState(0);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
     const containerRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
     const [startX, setStartX] = useState(0);
@@ -30,6 +32,53 @@ const SearchPanel = ({
             return matchesVehicle && matchesSearch && matchesType;
         });
     }, [parts, selectedVehicleId, searchTerm, selectedTypes]);
+
+    // Update scroll button states
+    const updateScrollButtons = () => {
+        if (containerRef.current) {
+            const { scrollLeft, scrollWidth, clientWidth } = containerRef.current;
+            setCanScrollLeft(scrollLeft > 0);
+            setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1); // -1 for rounding
+            setScrollPosition(scrollLeft);
+        }
+    };
+
+    // Handle mouse wheel for horizontal scrolling
+    const handleWheel = (e) => {
+        if (containerRef.current) {
+            // Prevent default vertical scrolling
+            e.preventDefault();
+            
+            // Convert vertical wheel movement to horizontal scroll
+            const scrollAmount = e.deltaY * 2; // Multiply for faster scrolling
+            containerRef.current.scrollLeft += scrollAmount;
+        }
+    };
+
+    // Initialize scroll buttons and listen for container changes
+    useEffect(() => {
+        const container = containerRef.current;
+        if (container) {
+            // Initial check
+            updateScrollButtons();
+            
+            // Listen for scroll events
+            container.addEventListener('scroll', updateScrollButtons);
+            
+            // Listen for wheel events for horizontal scrolling
+            container.addEventListener('wheel', handleWheel, { passive: false });
+            
+            // Listen for resize events
+            const resizeObserver = new ResizeObserver(updateScrollButtons);
+            resizeObserver.observe(container);
+            
+            return () => {
+                container.removeEventListener('scroll', updateScrollButtons);
+                container.removeEventListener('wheel', handleWheel);
+                resizeObserver.disconnect();
+            };
+        }
+    }, [filteredParts]); // Re-run when parts change
 
     const handleAddPart = (part) => {
         const currentQuantity =
@@ -71,7 +120,6 @@ const SearchPanel = ({
     const scrollLeft = () => {
         if (containerRef.current) {
             const newPosition = Math.max(0, scrollPosition - 250);
-            setScrollPosition(newPosition);
             containerRef.current.scrollTo({
                 left: newPosition,
                 behavior: "smooth",
@@ -85,7 +133,6 @@ const SearchPanel = ({
                 containerRef.current.scrollWidth -
                 containerRef.current.clientWidth;
             const newPosition = Math.min(maxScroll, scrollPosition + 250);
-            setScrollPosition(newPosition);
             containerRef.current.scrollTo({
                 left: newPosition,
                 behavior: "smooth",
@@ -97,6 +144,7 @@ const SearchPanel = ({
         setIsDragging(true);
         setStartX(e.pageX - containerRef.current.offsetLeft);
         setStartScrollLeft(containerRef.current.scrollLeft);
+        containerRef.current.style.cursor = 'grabbing';
     };
 
     const handleMouseMove = (e) => {
@@ -105,22 +153,21 @@ const SearchPanel = ({
         const x = e.pageX - containerRef.current.offsetLeft;
         const walk = (x - startX) * 2;
         containerRef.current.scrollLeft = startScrollLeft - walk;
-        setScrollPosition(containerRef.current.scrollLeft);
     };
 
     const handleMouseUp = () => {
         setIsDragging(false);
+        if (containerRef.current) {
+            containerRef.current.style.cursor = 'grab';
+        }
     };
 
     const handleMouseLeave = () => {
         setIsDragging(false);
+        if (containerRef.current) {
+            containerRef.current.style.cursor = 'grab';
+        }
     };
-
-    const canScrollLeft = scrollPosition > 0;
-    const canScrollRight =
-        containerRef.current &&
-        scrollPosition <
-            containerRef.current.scrollWidth - containerRef.current.clientWidth;
 
     if (filteredParts.length === 0) {
         return (
@@ -132,35 +179,42 @@ const SearchPanel = ({
 
     return (
         <div className="h-full flex flex-col p-3 relative">
-            <div className="absolute top-2 right-2 flex gap-1 z-10">
-                <button
-                    onClick={scrollLeft}
-                    disabled={!canScrollLeft}
-                    className="p-1.5 rounded-full bg-white shadow-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border"
-                >
-                    <ChevronLeft className="w-3 h-3" />
-                </button>
-                <button
-                    onClick={scrollRight}
-                    disabled={!canScrollRight}
-                    className="p-1.5 rounded-full bg-white shadow-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border"
-                >
-                    <ChevronRight className="w-3 h-3" />
-                </button>
-            </div>
+            {/* Scroll buttons - only show if scrolling is possible */}
+            {(canScrollLeft || canScrollRight) && (
+                <div className="absolute top-2 right-2 flex gap-1 z-10">
+                    <button
+                        onClick={scrollLeft}
+                        disabled={!canScrollLeft}
+                        className="p-1.5 rounded-full bg-white shadow-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border"
+                        title="Scroll left"
+                    >
+                        <ChevronLeft className="w-3 h-3" />
+                    </button>
+                    <button
+                        onClick={scrollRight}
+                        disabled={!canScrollRight}
+                        className="p-1.5 rounded-full bg-white shadow-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border"
+                        title="Scroll right"
+                    >
+                        <ChevronRight className="w-3 h-3" />
+                    </button>
+                </div>
+            )}
 
             <div
                 ref={containerRef}
-                className={`h-full overflow-x-auto overflow-y-hidden scrollbar-hide ${
-                    isDragging ? "cursor-grabbing" : "cursor-grab"
-                }`}
+                className="h-full overflow-x-auto overflow-y-hidden cursor-grab select-none"
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseLeave}
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                style={{ 
+                    scrollbarWidth: "none", 
+                    msOverflowStyle: "none",
+                    WebkitOverflowScrolling: "touch" // Better mobile scrolling
+                }}
             >
-                <div className="flex gap-2 h-full pb-2">
+                <div className="flex gap-2 h-full pb-2 min-w-max">
                     {filteredParts.map((part) => {
                         const currentQuantity =
                             customizations?.parts?.find(
