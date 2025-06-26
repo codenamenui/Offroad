@@ -37,10 +37,10 @@ export default async function AdminDashboard() {
                     Admin Dashboard
                 </h2>
                 <p className="mt-2 text-center text-sm text-gray-600">
-                    Welcome to Putik Offroaders Admin Panel
+                    Welcome to Putik Offroaders Admin Panel!
                 </p>
                 <p className="text-center text-sm text-gray-600">
-                    Manage your inventory and accounts
+                    Manage your inventory and accounts.
                 </p>
             </div>
 
