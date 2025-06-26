@@ -1,4 +1,4 @@
-// PartItem.tsx - Compact version
+// PartItem.tsx - Compact version with two-line description limit
 import Image from "next/image";
 import { Plus } from "lucide-react";
 
@@ -59,28 +59,30 @@ const PartItem = ({
                 {part.types?.name || "General"}
             </div>
 
-            <div className="flex items-start justify-between mb-1">
-                <h4 className="font-semibold text-gray-900 text-xs flex-1 pr-1 leading-tight">
-                    {truncateName(part.name)}
-                </h4>
-                {!isDisabled && (
-                    <button
-                        className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-full p-0.5 transition-colors"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onAddPart(part);
-                        }}
-                    >
-                        <Plus className="w-3 h-3" />
-                    </button>
-                )}
+            <div className="mb-1">
+                <div className="flex items-start justify-between mb-1">
+                    <h4 className="font-semibold text-gray-900 text-xs leading-tight line-clamp-1 flex-1 pr-1">
+                        {part.name}
+                    </h4>
+                    {!isDisabled && (
+                        <button
+                            className="text-amber-500 hover:text-amber-600 hover:bg-amber-50 rounded-full p-0.5 transition-colors flex-shrink-0"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onAddPart(part);
+                            }}
+                        >
+                            <Plus className="w-3 h-3" />
+                        </button>
+                    )}
+                </div>
+                
+                <div className="text-gray-600 text-xs leading-snug">
+                    <p className="line-clamp-2">
+                        {part.description}
+                    </p>
+                </div>
             </div>
-
-            <p className="text-gray-600 text-xs mb-2 flex-1 leading-tight">
-                {part.description.length > 40
-                    ? `${part.description.substring(0, 40)}...`
-                    : part.description}
-            </p>
 
             <div className="flex justify-between items-end mt-auto">
                 <div className="text-sm font-bold text-gray-900">
@@ -98,4 +100,4 @@ const PartItem = ({
     );
 };
 
-export default PartItem;    
+export default PartItem;

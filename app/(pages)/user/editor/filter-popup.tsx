@@ -25,7 +25,7 @@ const FilterPopup = ({ types, selectedTypes, onTypeToggle, onClose }) => {
                 id={`type-${type.id}`}
                 checked={selectedTypes.includes(type.id)}
                 onChange={() => onTypeToggle(type.id)}
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                className="w-4 h-4 text-amber-600 bg-gray-100 border-gray-300 rounded hover:border-amber-400 focus:outline-none focus:ring-0 checked:bg-amber-600 checked:border-amber-600"
               />
               <label
                 htmlFor={`type-${type.id}`}

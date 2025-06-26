@@ -142,7 +142,7 @@ export default function BookingRequestsPanel({
             case "rejected":
                 return "text-red-600";
             case "mixed":
-                return "text-orange-600";
+                return "text-amber-600";
             default:
                 return "text-gray-600";
         }
@@ -390,7 +390,7 @@ export default function BookingRequestsPanel({
                                                                         ? "bg-red-600"
                                                                         : group.status?.toLowerCase() ===
                                                                           "mixed"
-                                                                        ? "bg-orange-600"
+                                                                        ? "bg-amber-600"
                                                                         : "bg-gray-600"
                                                                 }`}
                                                             ></div>

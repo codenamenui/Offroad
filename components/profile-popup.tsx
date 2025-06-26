@@ -150,7 +150,7 @@ const ProfilePopup = ({ user, onClose, onUpdate }) => {
                 <div className="flex items-center justify-between p-6 border-b">
                     <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                            <User size={20} className="text-orange-600" />
+                            <User size={20} className="text-amber-600" />
                         </div>
                         <span className="font-medium text-gray-900">
                             {user.name}
@@ -181,7 +181,7 @@ const ProfilePopup = ({ user, onClose, onUpdate }) => {
                             <button
                                 onClick={updateProfile}
                                 disabled={loading}
-                                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors"
+                                className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors"
                             >
                                 {loading ? "Saving..." : "Save"}
                             </button>
@@ -197,7 +197,7 @@ const ProfilePopup = ({ user, onClose, onUpdate }) => {
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                             />
                         </div>
 
@@ -215,7 +215,7 @@ const ProfilePopup = ({ user, onClose, onUpdate }) => {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     disabled={!isMechanic}
-                                    className={`w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
+                                    className={`w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent ${
                                         !isMechanic
                                             ? "bg-gray-50 text-gray-500"
                                             : ""
@@ -234,7 +234,7 @@ const ProfilePopup = ({ user, onClose, onUpdate }) => {
                                 onChange={(e) =>
                                     setContactNumber(e.target.value)
                                 }
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                             />
                         </div>
 
@@ -262,7 +262,7 @@ const ProfilePopup = ({ user, onClose, onUpdate }) => {
                                 disabled={
                                     loading || !password || !confirmPassword
                                 }
-                                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors"
+                                className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors"
                             >
                                 {loading ? "Updating..." : "Change Password"}
                             </button>
@@ -279,7 +279,7 @@ const ProfilePopup = ({ user, onClose, onUpdate }) => {
                                     onChange={(e) =>
                                         setPassword(e.target.value)
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                                 />
                             </div>
 
@@ -293,7 +293,7 @@ const ProfilePopup = ({ user, onClose, onUpdate }) => {
                                     onChange={(e) =>
                                         setConfirmPassword(e.target.value)
                                     }
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                                 />
                             </div>
                         </div>

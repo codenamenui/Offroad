@@ -278,7 +278,7 @@ export default function BookingGroupModal({
                             <>
                                 <button
                                     onClick={handleChangeInEditor}
-                                    className="w-full py-3 bg-orange-400 text-white rounded-xl font-medium hover:bg-orange-500 transition-colors"
+                                    className="w-full py-3 bg-amber-400 text-white rounded-xl font-medium hover:bg-amber-500 transition-colors"
                                     disabled={isLoading}
                                 >
                                     Change in Editor

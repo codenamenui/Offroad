@@ -179,8 +179,8 @@ const HeaderPanel = ({ user, search, mechanic = false }) => {
                 className="flex items-center space-x-3 mb-6 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
                 onClick={handleProfileClick}
               >
-                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                  <User size={20} className="text-orange-600" />
+                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                  <User size={20} className="text-amber-600" />
                 </div>
                 <div>
                   <p className="font-medium text-gray-900">{profile.name}</p>

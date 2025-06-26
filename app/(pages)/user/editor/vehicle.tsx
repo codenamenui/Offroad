@@ -398,7 +398,7 @@ const VehiclePanel = ({
                                 isLoading ||
                                 filteredCustomizations.length === 0
                             }
-                            className="bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200"
+                            className="bg-amber-500 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200"
                         >
                             {isUpdating || isLoading
                                 ? "Processing..."
@@ -420,7 +420,7 @@ const VehiclePanel = ({
                             isLoading ||
                             filteredCustomizations.length === 0
                         }
-                        className="bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200"
+                        className="bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200"
                     >
                         {isUpdating || isLoading ? "Processing..." : "Book Now"}
                     </button>
