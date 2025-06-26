@@ -14,50 +14,132 @@ const LoginPage = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [videoLoaded, setVideoLoaded] = useState<boolean>(false);
     const [videoError, setVideoError] = useState<boolean>(false);
+    const [isPlaying, setIsPlaying] = useState<boolean>(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const router = useRouter();
 
     useEffect(() => {
         const video = videoRef.current;
-        if (video) {
-            const handleUserInteraction = () => {
-                video
-                    .play()
-                    .catch((e) => console.log("Play attempt failed:", e));
-                document.removeEventListener("click", handleUserInteraction);
-                document.removeEventListener(
-                    "touchstart",
-                    handleUserInteraction
-                );
+        if (!video) return;
+
+        let playAttempts = 0;
+        const maxAttempts = 5;
+        let userInteractionCleanup: (() => void) | null = null;
+
+        const attemptPlay = async () => {
+            try {
+                const playPromise = video.play();
+                if (playPromise !== undefined) {
+                    await playPromise;
+                    setIsPlaying(true);
+                    console.log('Video autoplay successful');
+                }
+            } catch (error) {
+                console.log(`Play attempt ${playAttempts + 1} failed:`, error);
+                playAttempts++;
+                
+                if (playAttempts < maxAttempts) {
+                    // Retry with exponential backoff
+                    setTimeout(attemptPlay, 100 * Math.pow(2, playAttempts - 1));
+                } else {
+                    console.log('Max play attempts reached, setting up user interaction listeners');
+                    userInteractionCleanup = setupUserInteractionListeners();
+                }
+            }
+        };
+
+        const setupUserInteractionListeners = () => {
+            const handleUserInteraction = async (event: Event) => {
+                console.log('User interaction detected:', event.type);
+                try {
+                    await video.play();
+                    setIsPlaying(true);
+                    removeListeners();
+                } catch (e) {
+                    console.log("User interaction play failed:", e);
+                }
             };
 
-            document.addEventListener("click", handleUserInteraction);
-            document.addEventListener("touchstart", handleUserInteraction);
+            const events = ['click', 'touchstart', 'keydown', 'scroll', 'mousemove'];
+            const options = { once: true, passive: true };
+            
+            events.forEach(event => {
+                document.addEventListener(event, handleUserInteraction, options);
+            });
 
-            const handleLoadedData = () => {
-                setVideoLoaded(true);
-                setVideoError(false);
-                // Try to play after load
-                video.play().catch((e) => console.log("Autoplay failed:", e));
+            const removeListeners = () => {
+                events.forEach(event => {
+                    document.removeEventListener(event, handleUserInteraction);
+                });
             };
 
-            const handleError = () => {
-                setVideoError(true);
-            };
+            return removeListeners;
+        };
 
-            video.addEventListener("loadeddata", handleLoadedData);
-            video.addEventListener("error", handleError);
+        const handleLoadedData = () => {
+            console.log('Video data loaded');
+            setVideoLoaded(true);
+            setVideoError(false);
+            // Reset play attempts for new load
+            playAttempts = 0;
+            attemptPlay();
+        };
 
-            return () => {
-                document.removeEventListener("click", handleUserInteraction);
-                document.removeEventListener(
-                    "touchstart",
-                    handleUserInteraction
-                );
-                video.removeEventListener("loadeddata", handleLoadedData);
-                video.removeEventListener("error", handleError);
-            };
+        const handleCanPlay = () => {
+            console.log('Video can play');
+            if (!isPlaying && playAttempts === 0) {
+                attemptPlay();
+            }
+        };
+
+        const handleLoadedMetadata = () => {
+            console.log('Video metadata loaded');
+            // Additional play attempt
+            if (!isPlaying) {
+                attemptPlay();
+            }
+        };
+
+        const handleError = (e) => {
+            console.error('Video error:', e);
+            setVideoError(true);
+        };
+
+        const handlePlay = () => {
+            setIsPlaying(true);
+        };
+
+        const handlePause = () => {
+            setIsPlaying(false);
+        };
+
+        // Set up event listeners
+        video.addEventListener('loadeddata', handleLoadedData);
+        video.addEventListener('loadedmetadata', handleLoadedMetadata);
+        video.addEventListener('canplay', handleCanPlay);
+        video.addEventListener('canplaythrough', handleCanPlay);
+        video.addEventListener('error', handleError);
+        video.addEventListener('play', handlePlay);
+        video.addEventListener('pause', handlePause);
+
+        // Check if video is already ready
+        if (video.readyState >= 2) { // HAVE_CURRENT_DATA or higher
+            handleLoadedData();
         }
+
+        // Cleanup function
+        return () => {
+            if (userInteractionCleanup) {
+                userInteractionCleanup();
+            }
+            video.removeEventListener('loadeddata', handleLoadedData);
+            video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+            video.removeEventListener('canplay', handleCanPlay);
+            video.removeEventListener('canplaythrough', handleCanPlay);
+            video.removeEventListener('error', handleError);
+            video.removeEventListener('play', handlePlay);
+            video.removeEventListener('pause', handlePause);
+        };
     }, []);
 
     const handleSubmit = async (e) => {
@@ -115,17 +197,23 @@ const LoginPage = () => {
                     ref={videoRef}
                     muted
                     playsInline
-                    autoPlay
                     loop
-                    preload="auto"
+                    preload="metadata"
                     className="w-full h-full object-cover"
+                    style={{ 
+                        // Ensure video is visible to help with autoplay
+                        opacity: videoLoaded && !videoError ? 1 : 0,
+                        transition: 'opacity 1s ease-in-out'
+                    }}
                 >
                     <source src="/video.mp4" type="video/mp4" />
+                    Your browser does not support the video tag.
                 </video>
 
+                {/* Fallback background with loading indicator */}
                 <div
                     className={`absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 transition-opacity duration-1000 ${
-                        videoLoaded && !videoError ? "opacity-0" : "opacity-100"
+                        videoLoaded && !videoError && isPlaying ? "opacity-0" : "opacity-100"
                     }`}
                 >
                     <div className="absolute inset-0 bg-gradient-to-r from-amber-900/20 via-transparent to-amber-900/20 animate-pulse"></div>
@@ -134,6 +222,13 @@ const LoginPage = () => {
                         <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-amber-300 rounded-full animate-ping animation-delay-2000"></div>
                         <div className="absolute bottom-1/4 left-1/2 w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping animation-delay-3000"></div>
                     </div>
+                    
+                    {/* Loading indicator */}
+                    {!videoLoaded && !videoError && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-white/70 text-sm">Loading...</div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
