@@ -41,7 +41,6 @@ export async function updateSession(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
 
     const publicRoutes = [
-        "/",
         "/login",
         "/register",
         "/api/auth",
@@ -60,10 +59,10 @@ export async function updateSession(request: NextRequest) {
         ],
     };
 
+    if (pathname === "/video.mp4") return NextResponse.next();
+
     const isPublicRoute = publicRoutes.some(
-        (route) =>
-            pathname === route ||
-            pathname.startsWith(route === "/" ? "odwfwaewfewfwadw" : route)
+        (route) => pathname === route || pathname.startsWith(route)
     );
 
     if (!user && !isPublicRoute) {
