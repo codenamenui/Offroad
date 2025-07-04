@@ -7,7 +7,6 @@ export async function updateSession(request: NextRequest) {
         request,
     });
 
-    // If the env vars are not set, skip middleware check
     if (!hasEnvVars) {
         return supabaseResponse;
     }
@@ -41,15 +40,14 @@ export async function updateSession(request: NextRequest) {
 
     const pathname = request.nextUrl.pathname;
 
-    // Define public routes that don't require authentication
     const publicRoutes = [
+        "/",
         "/login",
         "/register",
         "/api/auth",
         "/reset-password",
     ];
 
-    // Define role-specific protected routes
     const protectedRoutes = {
         user: ["/user/editor", "/user/bookings"],
         mechanic: ["/mechanic/bookings", "/mechanic/leaves"],
@@ -62,19 +60,18 @@ export async function updateSession(request: NextRequest) {
         ],
     };
 
-    // Check if current path is public
     const isPublicRoute = publicRoutes.some(
-        (route) => pathname === route || pathname.startsWith(route)
+        (route) =>
+            pathname === route ||
+            pathname.startsWith(route === "/" ? "odwfwaewfewfwadw" : route)
     );
 
-    // If no user and trying to access protected route, redirect to login
-    if ((!user && !isPublicRoute) || pathname == "/") {
+    if (!user && !isPublicRoute) {
         const url = request.nextUrl.clone();
         url.pathname = "/login";
         return NextResponse.redirect(url);
     }
 
-    // If user exists, get their profile and role
     if (user) {
         try {
             const { data: profile } = await supabase
@@ -86,22 +83,30 @@ export async function updateSession(request: NextRequest) {
             if (profile?.role) {
                 const userRole = profile.role as "user" | "mechanic" | "admin";
 
-                // Handle role-based redirections
-
-                // If user is on login/register pages but already authenticated, redirect to appropriate dashboard
                 if (pathname === "/login" || pathname === "/register") {
                     const url = request.nextUrl.clone();
-                    if (userRole == "user") {
-                        url.pathname = `/user/editor`;
-                    } else if (userRole == "admin") {
-                        url.pathname = `/${userRole}/dashboard`;
+                    if (userRole === "user") {
+                        url.pathname = "/user/editor";
+                    } else if (userRole === "admin") {
+                        url.pathname = "/admin/dashboard";
                     } else {
-                        url.pathname = `/mechanic/bookings`;
+                        url.pathname = "/mechanic/bookings";
                     }
                     return NextResponse.redirect(url);
                 }
 
-                // Check if user is trying to access a route they're not authorized for
+                if (pathname === "/") {
+                    const url = request.nextUrl.clone();
+                    if (userRole === "user") {
+                        url.pathname = "/user/editor";
+                    } else if (userRole === "admin") {
+                        url.pathname = "/admin/dashboard";
+                    } else {
+                        url.pathname = "/mechanic/bookings";
+                    }
+                    return NextResponse.redirect(url);
+                }
+
                 const isUserRoute = protectedRoutes.user.some((route) =>
                     pathname.startsWith(route)
                 );
@@ -112,7 +117,6 @@ export async function updateSession(request: NextRequest) {
                     pathname.startsWith(route)
                 );
 
-                // Redirect to appropriate dashboard if accessing wrong role-specific route
                 if (userRole === "user" && (isMechanicRoute || isAdminRoute)) {
                     const url = request.nextUrl.clone();
                     url.pathname = "/user/editor";
@@ -126,11 +130,9 @@ export async function updateSession(request: NextRequest) {
                 }
 
                 if (userRole === "admin" && (isUserRoute || isMechanicRoute)) {
-                    // Admins can access everything, so no redirect needed
-                    // But you can add specific admin-only routes if needed
+                    return supabaseResponse;
                 }
             } else {
-                // User exists but no profile found, redirect to profile setup or login
                 if (!isPublicRoute) {
                     const url = request.nextUrl.clone();
                     url.pathname = "/login";
@@ -139,7 +141,6 @@ export async function updateSession(request: NextRequest) {
             }
         } catch (error) {
             console.error("Error fetching user profile in middleware:", error);
-            // On error, if trying to access protected route, redirect to login
             if (!isPublicRoute) {
                 const url = request.nextUrl.clone();
                 url.pathname = "/login";
