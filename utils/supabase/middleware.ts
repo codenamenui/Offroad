@@ -59,8 +59,6 @@ export async function updateSession(request: NextRequest) {
         ],
     };
 
-    if (pathname === "/video.mp4") return NextResponse.next();
-
     const isPublicRoute = publicRoutes.some(
         (route) => pathname === route || pathname.startsWith(route)
     );
